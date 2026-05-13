@@ -23,7 +23,7 @@
                             blue: '#1E3A8A', 
                             lightBlue: '#DBEAFE',
                             accent: '#F59E0B', 
-                            green: '#27AE60', // Color verde para comprobantes
+                            green: '#27AE60',
                         }
                     }
                 }
@@ -34,18 +34,22 @@
         /* Estilos para impresión / Exportar a PDF */
         @media print {
             body, html, main { 
-                background-color: white; 
+                background-color: white !important; 
                 overflow: visible !important;
                 height: auto !important;
             }
-            #sidebar, section[id$="controls-panel"], .no-print { display: none !important; }
-            .hidden { display: none !important; } /* Asegurar que vistas ocultas no se impriman */
+            #sidebar, section[id$="controls-panel"], .no-print, header.mobile-header { display: none !important; }
+            .hidden { display: none !important; }
+            
+            /* Forzar el panel de vista previa para impresión */
             section[id$="preview-panel"] { 
                 width: 100% !important; 
-                margin: 0; padding: 0; 
+                margin: 0 !important; 
+                padding: 0 !important; 
                 box-shadow: none !important;
                 background-color: white !important;
                 display: flex !important;
+                overflow: visible !important;
             }
             ::-webkit-scrollbar {
                 display: none !important;
@@ -54,6 +58,7 @@
                 box-shadow: none !important;
                 width: 100% !important;
                 max-width: 100% !important;
+                min-width: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 transform: scale(1) !important;
@@ -73,587 +78,610 @@
             background-color: #1e40af; /* blue-800 */
             color: white;
         }
+        
+        /* Animaciones para el menu movil */
+        .sidebar-transition {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
-<body class="bg-gray-100 flex h-screen overflow-hidden font-sans text-gray-800">
+<body class="bg-gray-100 flex h-screen w-full overflow-hidden font-sans text-gray-800 relative">
+
+    <!-- BACKDROP PARA MOVIL -->
+    <div id="sidebar-backdrop" onclick="toggleSidebar()" class="hidden md:hidden fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity"></div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar" class="w-64 bg-dunamis-blue text-white flex flex-col shadow-xl z-20 transition-all">
-        <div class="p-6 text-center border-b border-blue-800">
+    <aside id="sidebar" class="absolute md:relative z-40 w-64 h-full bg-dunamis-blue text-white flex flex-col shadow-xl sidebar-transition transform -translate-x-full md:translate-x-0 flex-shrink-0">
+        <div class="p-6 text-center border-b border-blue-800 relative">
+            <button onclick="toggleSidebar()" class="md:hidden absolute top-4 right-4 text-gray-300 hover:text-white">
+                <i class="fa-solid fa-xmark text-xl"></i>
+            </button>
             <img src="LOGO.jpg" alt="Logo Fundación Dunamis" class="mx-auto mb-3 w-32 h-auto bg-white p-1 rounded object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/318x159/ffffff/1e3a8a?text=LOGO+DUNAMIS';">
             <h1 class="font-bold text-lg leading-tight">Fundación Dunamis</h1>
             <p class="text-xs text-blue-300 mt-1">El Poder de Dios</p>
         </div>
-        <nav class="flex-1 p-4 space-y-2">
+        <nav class="flex-1 p-4 space-y-2 overflow-y-auto">
             <button onclick="switchView('recordatorios')" id="nav-recordatorios" class="nav-item active w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
                 <i class="fa-solid fa-file-invoice-dollar w-5"></i>
                 Recordatorios
             </button>
-            <button onclick="switchView('estudiantes')" id="nav-estudiantes" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
+            <button onclick="switchView('comprobantes')" id="nav-comprobantes" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
+                <i class="fa-solid fa-receipt w-5"></i>
+                Comprobantes
+            </button>
+            <button onclick="switchView('estudiantes')" id="nav-estudiantes" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white mt-4 border-t border-blue-800 pt-4">
                 <i class="fa-solid fa-users w-5"></i>
-                Estudiantes
+                Estudiantes y Envíos
             </button>
             <button onclick="switchView('configuracion')" id="nav-configuracion" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
                 <i class="fa-solid fa-gear w-5"></i>
                 Configuración
             </button>
-            <button onclick="switchView('comprobantes')" id="nav-comprobantes" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white mt-4 border-t border-blue-800 pt-4">
-                <i class="fa-solid fa-receipt w-5"></i>
-                Comprobantes
-            </button>
         </nav>
         <div class="p-4 border-t border-blue-800 text-xs text-center text-blue-400">
-            v1.3 - Recordatorios y Comprobantes
+            v1.4 - Multiplataforma
         </div>
     </aside>
 
     <!-- MAIN CONTENT WRAPPER -->
-    <main class="flex-1 flex overflow-hidden relative">
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative w-full">
         
-        <!-- ================= VIEW: RECORDATORIOS ================= -->
-        <div id="view-recordatorios" class="w-full flex h-full">
+        <!-- MOBILE HEADER -->
+        <header class="mobile-header md:hidden bg-dunamis-blue text-white p-4 flex justify-between items-center z-20 shadow-md flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <img src="LOGO.jpg" alt="Logo" class="w-10 h-10 object-contain bg-white p-0.5 rounded" onerror="this.onerror=null; this.src='https://via.placeholder.com/40x40/ffffff/1e3a8a?text=FD';">
+                <h1 class="font-bold text-lg leading-tight">Dunamis</h1>
+            </div>
+            <button onclick="toggleSidebar()" class="text-white text-2xl px-2">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </header>
+
+        <!-- VIEWS CONTAINER -->
+        <div class="flex-1 flex overflow-hidden relative w-full">
             
-            <!-- PANEL DE CONTROL (FORMULARIO) -->
-            <section id="recordatorios-controls-panel" class="w-[400px] min-w-[400px] bg-white shadow-xl z-10 overflow-y-auto flex flex-col">
-                <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                    <div>
-                        <h2 class="text-lg font-bold text-gray-800" id="form-title">Generar Recordatorio</h2>
-                        <p class="text-xs text-gray-500">Modifica los datos para previsualizar.</p>
+            <!-- ================= VIEW: RECORDATORIOS ================= -->
+            <div id="view-recordatorios" class="w-full flex flex-col md:flex-row h-full">
+                
+                <!-- PANEL DE CONTROL (FORMULARIO) -->
+                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                    <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-800" id="form-title">Generar Recordatorio</h2>
+                            <p class="text-xs text-gray-500">Modifica los datos para previsualizar.</p>
+                        </div>
+                        <button onclick="limpiarFormulario()" class="text-xs text-dunamis-blue hover:underline"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
                     </div>
-                    <button onclick="limpiarFormulario()" class="text-xs text-dunamis-blue hover:underline"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
-                </div>
 
-                <div class="p-5 flex-1 space-y-5">
-                    <!-- Datos Estudiante -->
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1">1. Datos del Estudiante</h3>
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label>
-                                <input type="text" id="inpNombre" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none" placeholder="Ej: JOSE SALCEDO">
+                    <div class="p-5 flex-1 space-y-5">
+                        <!-- Datos Estudiante -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1">1. Datos del Estudiante</h3>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre Completo</label>
+                                    <input type="text" id="inpNombre" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none" placeholder="Ej: JOSE SALCEDO">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Programa Académico</label>
+                                    <select id="inpPrograma" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none bg-white">
+                                        <!-- Llenado por JS -->
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Programa Académico</label>
-                                <select id="inpPrograma" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none bg-white">
-                                    <!-- Llenado por JS -->
-                                </select>
+                        </div>
+
+                        <!-- Configuración Financiera -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1 flex justify-between items-center">
+                                <span>2. Plan Financiero</span>
+                            </h3>
+                            <div class="space-y-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                <div>
+                                    <label class="block text-xs font-semibold text-dunamis-blue mb-1">Plantilla de Costos</label>
+                                    <select id="inpPlantilla" onchange="cargarPlantillaEnTabla()" class="w-full text-sm border border-blue-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none bg-white">
+                                        <!-- Options llenadas por JS -->
+                                    </select>
+                                    <p class="text-[10px] text-gray-500 mt-1">Al seleccionar, se llenará la tabla inferior automáticamente.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Datos Documento -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1">3. Fechas del Documento</h3>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha Emisión</label>
+                                    <input type="date" id="inpEmision" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha Vencimiento</label>
+                                    <input type="date" id="inpVencimiento" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tabla de Cobros -->
+                        <div>
+                            <div class="flex justify-between items-end mb-2 border-b pb-1">
+                                <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Conceptos Actuales</h3>
+                                <button onclick="addEmptyRow()" class="text-xs text-dunamis-blue hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus"></i> Añadir Fila</button>
+                            </div>
+                            
+                            <div id="items-container" class="space-y-2">
+                                <!-- Las filas se inyectan por JS -->
+                            </div>
+                            
+                            <div class="mt-3 flex justify-end gap-2 items-center bg-gray-100 p-2 rounded">
+                                <span class="text-xs font-bold text-gray-600">Total Calculado:</span>
+                                <span id="control-total" class="font-bold text-lg text-dunamis-blue">$0</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Configuración Financiera -->
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1 flex justify-between items-center">
-                            <span>2. Plan Financiero</span>
-                        </h3>
-                        <div class="space-y-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
-                            <div>
-                                <label class="block text-xs font-semibold text-dunamis-blue mb-1">Plantilla de Costos</label>
-                                <select id="inpPlantilla" onchange="cargarPlantillaEnTabla()" class="w-full text-sm border border-blue-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none bg-white">
-                                    <!-- Options llenadas por JS -->
-                                </select>
-                                <p class="text-[10px] text-gray-500 mt-1">Al seleccionar, se llenará la tabla inferior automáticamente.</p>
+                    <!-- Acciones -->
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 gap-3 flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                        <button onclick="guardarRegistro()" class="w-full bg-dunamis-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-save"></i> Guardar Estudiante / Registro
+                        </button>
+                        <button onclick="window.print()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2 border border-gray-300">
+                            <i class="fa-solid fa-file-pdf text-red-500"></i> Imprimir Recordatorio
+                        </button>
+                    </div>
+                </section>
+
+                <!-- AREA DE VISTA PREVIA DEL DOCUMENTO -->
+                <section id="recordatorios-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                    
+                    <!-- EL DOCUMENTO (ESTILO HOJA A4) -->
+                    <div class="a4-document min-w-[750px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative">
+                        
+                        <!-- HEADER -->
+                        <header class="flex justify-between items-start border-b-2 border-dunamis-blue pb-4 mb-6">
+                            <div class="flex items-center gap-4">
+                                <!-- Logo -->
+                                <img src="LOGO.jpg" alt="Logo Fundación Dunamis" class="w-32 md:w-40 h-16 md:h-20 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/318x159/ffffff/1e3a8a?text=LOGO+DUNAMIS';">
+                                <div>
+                                    <h1 class="font-bold text-lg md:text-xl text-dunamis-blue tracking-wide uppercase">Fundación Dunamis</h1>
+                                    <p class="font-semibold text-xs md:text-sm text-gray-600">El Poder de Dios</p>
+                                    <p class="text-[10px] md:text-xs text-gray-500 mt-1"><strong>NIT:</strong> 901302954</p>
+                                    <p class="text-[10px] md:text-xs text-gray-500"><strong>Dirección:</strong> Olaya Herrera Sec. Central Cl. 32 #62-18 San Antonio</p>
+                                    <p class="text-[10px] md:text-xs text-gray-500"><strong>Ciudad:</strong> Cartagena de Indias</p>
+                                </div>
+                            </div>
+                            
+                            <div class="text-right flex flex-col items-end">
+                                <h2 class="text-lg md:text-xl font-black text-dunamis-blue w-40 md:w-48 leading-tight mb-2 uppercase">Estado de Cuenta y Recordatorio de Pago</h2>
+                                <div class="bg-dunamis-accent text-white px-2 md:px-3 py-1 rounded text-xs md:text-sm font-bold shadow-sm mb-1 flex gap-2 items-center w-full justify-between">
+                                    <span>VENCIMIENTO:</span>
+                                    <span id="docVencimiento">10/MAY/2026</span>
+                                </div>
+                                <div class="bg-gray-200 text-gray-700 px-2 md:px-3 py-1 rounded text-xs md:text-sm font-bold shadow-sm flex gap-2 items-center w-full justify-between">
+                                    <span>EMISIÓN:</span>
+                                    <span id="docEmision">01/MAY/2026</span>
+                                </div>
+                            </div>
+                        </header>
+
+                        <!-- INFO ESTUDIANTE -->
+                        <div class="flex gap-4 mb-6">
+                            <div class="w-full bg-gray-50 border border-gray-200 rounded-lg p-4">
+                                <h3 class="font-bold text-gray-800 border-b border-gray-300 pb-1 mb-2 text-sm">Datos del Estudiante</h3>
+                                <div class="flex flex-col sm:flex-row sm:gap-8">
+                                    <p class="text-xs md:text-sm text-gray-700 mb-2 sm:mb-0"><strong>Nombre:</strong> <br><span id="docNombre" class="uppercase text-sm md:text-base font-semibold">JOSE SALCEDO</span></p>
+                                    <p class="text-xs md:text-sm text-gray-700"><strong>Programa Académico:</strong> <br><span id="docPrograma" class="uppercase">SERVICIOS FARMACÉUTICOS</span></p>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- TABLA DE DETALLES -->
+                        <div class="mb-6 flex-1">
+                            <table class="w-full text-xs md:text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-dunamis-lightBlue text-dunamis-blue">
+                                        <th class="text-center py-2 px-2 md:px-3 rounded-tl-lg font-bold border-b-2 border-white w-12 md:w-16">CANT.</th>
+                                        <th class="text-left py-2 px-2 md:px-3 font-bold border-b-2 border-white">DESCRIPCIÓN</th>
+                                        <th class="text-right py-2 px-2 md:px-3 font-bold border-b-2 border-white w-24 md:w-32">VALOR UNIT.</th>
+                                        <th class="text-right py-2 px-2 md:px-3 rounded-tr-lg font-bold border-b-2 border-white w-24 md:w-32">TOTAL</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="docTableBody">
+                                    <!-- Filas dinámicas -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="2" class="border-t-2 border-gray-300"></td>
+                                        <td class="text-right py-2 px-3 font-bold text-gray-700 border-t-2 border-gray-300 bg-gray-50">Subtotal:</td>
+                                        <td class="text-right py-2 px-3 font-bold text-gray-700 border-t-2 border-gray-300 bg-gray-50" id="docSubtotal">$ 0</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2"></td>
+                                        <td class="text-right py-2 px-3 font-bold text-gray-700 bg-gray-50">Saldo Anterior:</td>
+                                        <td class="text-right py-2 px-3 font-bold text-gray-700 bg-gray-50">$ 0.00</td>
+                                    </tr>
+                                    <tr class="bg-dunamis-lightBlue text-dunamis-blue text-base md:text-lg">
+                                        <td colspan="2" class="rounded-bl-lg"></td>
+                                        <td class="text-right py-3 px-3 font-black">TOTAL CANCELAR:</td>
+                                        <td class="text-right py-3 px-3 font-black rounded-br-lg" id="docTotal">$ 270.000</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- MEDIOS DE PAGO -->
+                        <div class="mt-auto bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4">
+                            <h3 class="text-center font-bold text-dunamis-blue mb-3 bg-dunamis-lightBlue py-1 rounded text-xs md:text-sm">MEDIOS DE PAGO</h3>
+                            
+                            <div class="grid grid-cols-3 gap-2 md:gap-4 text-[10px] md:text-xs">
+                                <!-- Bancolombia -->
+                                <div class="border-r border-gray-300 pr-1 md:pr-2">
+                                    <div class="flex items-center gap-1 md:gap-2 font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1">
+                                        <i class="fa-solid fa-building-columns text-dunamis-blue"></i> BANCOLOMBIA
+                                    </div>
+                                    <p><strong>Cta. Ahorros</strong></p>
+                                    <p class="font-mono text-[10px] md:text-sm mt-1">7880 0004 308</p>
+                                    <p class="mt-1 text-gray-600">A nombre de:<br>Fundación Dunamis<br>NIT: 901302954</p>
+                                </div>
+                                
+                                <!-- Billeteras Digitales -->
+                                <div class="border-r border-gray-300 pr-1 md:pr-2 px-1 md:px-2 flex flex-col justify-between">
+                                    <div>
+                                        <div class="flex items-center gap-1 md:gap-2 font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1">
+                                            <i class="fa-solid fa-mobile-screen-button text-purple-600"></i> BILLETERAS
+                                        </div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <img src="nequi.jpg" alt="Nequi" class="h-4 md:h-5 w-auto rounded object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/60x20/2b0a3d/ffffff?text=Nequi';">
+                                            <span class="font-mono font-bold text-[10px] md:text-sm">310 664 9307</span>
+                                        </div>
+                                        <div class="flex items-center justify-between mb-2">
+                                            <img src="daviplata.jpg" alt="DaviPlata" class="h-4 md:h-5 w-auto rounded object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/60x20/df0404/ffffff?text=DaviPlata';">
+                                            <span class="font-mono font-bold text-[10px] md:text-sm">310 664 9307</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-1 bg-gray-100 p-1.5 rounded border border-gray-200">
+                                        <div class="flex items-center gap-1 mb-1">
+                                            <img src="breb.png" alt="Bre-B" class="h-3 md:h-4 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/50x15/2e008b/00ffb2?text=Bre-B';">
+                                            <span class="text-[9px] md:text-[10px] font-bold text-gray-700">Llaves:</span>
+                                        </div>
+                                        <p class="text-[8px] md:text-[9px] text-gray-600 leading-tight">Nequi: @3106649307<br>Transfiya: 73130375</p>
+                                    </div>
+                                </div>
+
+                                <!-- QR / Contacto -->
+                                <div class="flex flex-col items-center justify-center text-center px-1 md:px-2">
+                                    <div class="w-12 h-12 md:w-16 md:h-16 bg-white border border-gray-300 flex items-center justify-center p-1 mb-2">
+                                        <i class="fa-solid fa-qrcode text-2xl md:text-4xl text-gray-800"></i>
+                                    </div>
+                                    <p class="font-bold mb-1">Escanea para pagar</p>
+                                    <p class="text-[8px] md:text-[10px] bg-green-100 text-green-800 px-1 md:px-2 py-1 rounded border border-green-200 mt-1 md:mt-2 w-full">
+                                        <i class="fa-brands fa-whatsapp"></i> Reportar a:<br>
+                                        <strong>312 616 6637</strong><br>
+                                        (Dubanis Chico)
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LEGAL FOOTER -->
+                        <div class="mt-4 text-center text-[8px] md:text-[9px] text-gray-500 border-t border-gray-200 pt-2">
+                            <p>Este documento es meramente informativo y de control administrativo interno.</p>
+                            <p>No constituye una factura de venta ni un documento equivalente tributario según lo estipulado en el <strong>Art. 616-1 del Estatuto Tributario.</strong></p>
+                        </div>
+
+                    </div>
+                </section>
+            </div>
+
+
+            <!-- ================= VIEW: COMPROBANTES ================= -->
+            <div id="view-comprobantes" class="hidden w-full flex flex-col md:flex-row h-full">
+                
+                <!-- PANEL DE CONTROL COMPROBANTES -->
+                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                    <div class="p-5 border-b border-gray-200 bg-gray-50">
+                        <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-receipt text-dunamis-green mr-2"></i> Generar Comprobante</h2>
+                        <p class="text-xs text-gray-500">Confirma y certifica los pagos realizados.</p>
                     </div>
 
-                    <!-- Datos Documento -->
-                    <div>
-                        <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1">3. Fechas del Documento</h3>
+                    <div class="p-5 flex-1 space-y-5">
+                        
+                        <!-- Llenado Inteligente -->
+                        <div class="bg-green-50 p-3 rounded-lg border border-green-200 shadow-sm">
+                            <label class="block text-xs font-bold text-dunamis-green mb-1"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Rellenado Automático</label>
+                            <select id="compSelectEstudiante" onchange="cargarEstudianteComprobante()" class="w-full text-sm border border-green-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none bg-white">
+                                <!-- Llenado por JS -->
+                            </select>
+                            <p class="text-[10px] text-gray-500 mt-1">Selecciona un estudiante para cargar sus datos y monto del último recordatorio.</p>
+                        </div>
+
+                        <!-- Fechas -->
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha Emisión</label>
-                                <input type="date" id="inpEmision" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none">
+                                <input type="date" id="compEmision" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha Vencimiento</label>
-                                <input type="date" id="inpVencimiento" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none">
+                                <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha de Pago Realizado</label>
+                                <input type="date" id="compPago" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Tabla de Cobros -->
-                    <div>
-                        <div class="flex justify-between items-end mb-2 border-b pb-1">
-                            <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider">Conceptos Actuales</h3>
-                            <button onclick="addEmptyRow()" class="text-xs text-dunamis-blue hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus"></i> Añadir Fila</button>
-                        </div>
-                        
-                        <div id="items-container" class="space-y-2">
-                            <!-- Las filas se inyectan por JS -->
-                        </div>
-                        
-                        <div class="mt-3 flex justify-end gap-2 items-center bg-gray-100 p-2 rounded">
-                            <span class="text-xs font-bold text-gray-600">Total Calculado:</span>
-                            <span id="control-total" class="font-bold text-lg text-dunamis-blue">$0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Acciones -->
-                <div class="p-5 bg-gray-50 border-t border-gray-200 gap-3 flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <button onclick="guardarRegistro()" class="w-full bg-dunamis-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-save"></i> Guardar Estudiante / Registro
-                    </button>
-                    <button onclick="window.print()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2 border border-gray-300">
-                        <i class="fa-solid fa-file-pdf text-red-500"></i> Imprimir Recordatorio
-                    </button>
-                </div>
-            </section>
-
-            <!-- AREA DE VISTA PREVIA DEL DOCUMENTO -->
-            <section id="recordatorios-preview-panel" class="flex-1 bg-gray-300 p-8 overflow-y-auto flex justify-center items-start">
-                
-                <!-- EL DOCUMENTO (ESTILO HOJA A4) -->
-                <div class="a4-document w-full max-w-3xl bg-white shadow-2xl p-10 flex flex-col rounded-sm relative">
-                    
-                    <!-- HEADER -->
-                    <header class="flex justify-between items-start border-b-2 border-dunamis-blue pb-4 mb-6">
-                        <div class="flex items-center gap-4">
-                            <!-- Logo -->
-                            <img src="LOGO.jpg" alt="Logo Fundación Dunamis" class="w-40 h-20 object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/318x159/ffffff/1e3a8a?text=LOGO+DUNAMIS';">
+                        <!-- Datos Estudiante -->
+                        <div class="space-y-3">
                             <div>
-                                <h1 class="font-bold text-xl text-dunamis-blue tracking-wide uppercase">Fundación Dunamis</h1>
-                                <p class="font-semibold text-sm text-gray-600">El Poder de Dios</p>
-                                <p class="text-xs text-gray-500 mt-1"><strong>NIT:</strong> 901302954</p>
-                                <p class="text-xs text-gray-500"><strong>Dirección:</strong> Olaya Herrera Sec. Central Cl. 32 #62-18 San Antonio</p>
-                                <p class="text-xs text-gray-500"><strong>Ciudad:</strong> Cartagena de Indias</p>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Cliente / Estudiante</label>
+                                <input type="text" id="compNombre" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
                             </div>
-                        </div>
-                        
-                        <div class="text-right flex flex-col items-end">
-                            <h2 class="text-xl font-black text-dunamis-blue w-48 leading-tight mb-2 uppercase">Estado de Cuenta y Recordatorio de Pago</h2>
-                            <div class="bg-dunamis-accent text-white px-3 py-1 rounded text-sm font-bold shadow-sm mb-1 flex gap-2 items-center w-full justify-between">
-                                <span>VENCIMIENTO:</span>
-                                <span id="docVencimiento">10/MAY/2026</span>
-                            </div>
-                            <div class="bg-gray-200 text-gray-700 px-3 py-1 rounded text-sm font-bold shadow-sm flex gap-2 items-center w-full justify-between">
-                                <span>EMISIÓN:</span>
-                                <span id="docEmision">01/MAY/2026</span>
-                            </div>
-                        </div>
-                    </header>
-
-                    <!-- INFO ESTUDIANTE -->
-                    <div class="flex gap-4 mb-6">
-                        <div class="w-full bg-gray-50 border border-gray-200 rounded-lg p-4">
-                            <h3 class="font-bold text-gray-800 border-b border-gray-300 pb-1 mb-2">Datos del Estudiante</h3>
-                            <div class="flex flex-col md:flex-row md:gap-8">
-                                <p class="text-sm text-gray-700 mb-2 md:mb-0"><strong>Nombre:</strong> <br><span id="docNombre" class="uppercase text-base font-semibold">JOSE SALCEDO</span></p>
-                                <p class="text-sm text-gray-700"><strong>Programa Académico:</strong> <br><span id="docPrograma" class="uppercase">SERVICIOS FARMACÉUTICOS</span></p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- TABLA DE DETALLES -->
-                    <div class="mb-6 flex-1">
-                        <table class="w-full text-sm border-collapse">
-                            <thead>
-                                <tr class="bg-dunamis-lightBlue text-dunamis-blue">
-                                    <th class="text-center py-2 px-3 rounded-tl-lg font-bold border-b-2 border-white w-16">CANT.</th>
-                                    <th class="text-left py-2 px-3 font-bold border-b-2 border-white">DESCRIPCIÓN</th>
-                                    <th class="text-right py-2 px-3 font-bold border-b-2 border-white w-32">VALOR UNIT.</th>
-                                    <th class="text-right py-2 px-3 rounded-tr-lg font-bold border-b-2 border-white w-32">TOTAL</th>
-                                </tr>
-                            </thead>
-                            <tbody id="docTableBody">
-                                <!-- Filas dinámicas -->
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="2" class="border-t-2 border-gray-300"></td>
-                                    <td class="text-right py-2 px-3 font-bold text-gray-700 border-t-2 border-gray-300 bg-gray-50">Subtotal:</td>
-                                    <td class="text-right py-2 px-3 font-bold text-gray-700 border-t-2 border-gray-300 bg-gray-50" id="docSubtotal">$ 0</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="2"></td>
-                                    <td class="text-right py-2 px-3 font-bold text-gray-700 bg-gray-50">Saldo Anterior:</td>
-                                    <td class="text-right py-2 px-3 font-bold text-gray-700 bg-gray-50">$ 0.00</td>
-                                </tr>
-                                <tr class="bg-dunamis-lightBlue text-dunamis-blue text-lg">
-                                    <td colspan="2" class="rounded-bl-lg"></td>
-                                    <td class="text-right py-3 px-3 font-black">TOTAL A CANCELAR:</td>
-                                    <td class="text-right py-3 px-3 font-black rounded-br-lg" id="docTotal">$ 270.000</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <!-- MEDIOS DE PAGO -->
-                    <div class="mt-auto bg-gray-50 border border-gray-200 rounded-lg p-4">
-                        <h3 class="text-center font-bold text-dunamis-blue mb-3 bg-dunamis-lightBlue py-1 rounded">MEDIOS DE PAGO</h3>
-                        
-                        <div class="grid grid-cols-3 gap-4 text-xs">
-                            
-                            <!-- Bancolombia -->
-                            <div class="border-r border-gray-300 pr-2">
-                                <div class="flex items-center gap-2 font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1">
-                                    <i class="fa-solid fa-building-columns text-dunamis-blue"></i> BANCOLOMBIA
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Programa o Carrera</label>
+                                    <input type="text" id="compPrograma" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
                                 </div>
-                                <p><strong>Cta. Ahorros</strong></p>
-                                <p class="font-mono text-sm mt-1">7880 0004 308</p>
-                                <p class="mt-1 text-gray-600">A nombre de:<br>Fundación Dunamis<br>NIT: 901302954</p>
                             </div>
-                            
-                            <!-- Billeteras Digitales -->
-                            <div class="border-r border-gray-300 pr-2 px-2 flex flex-col justify-between">
+                        </div>
+
+                        <!-- Datos Pago -->
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Concepto</label>
+                                    <input list="conceptos-list" id="compConcepto" placeholder="Seleccione o escriba..." class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
+                                    <datalist id="conceptos-list">
+                                        <option value="Matrícula"></option>
+                                        <option value="Cuota"></option>
+                                        <option value="Abono"></option>
+                                        <option value="Inscripción"></option>
+                                        <option value="Seminario"></option>
+                                        <option value="Certificado"></option>
+                                    </datalist>
+                                </div>
                                 <div>
-                                    <div class="flex items-center gap-2 font-bold text-gray-800 mb-2 border-b border-gray-200 pb-1">
-                                        <i class="fa-solid fa-mobile-screen-button text-purple-600"></i> BILLETERAS
-                                    </div>
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <img src="nequi.jpg" alt="Nequi" class="h-5 w-auto rounded object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/60x20/2b0a3d/ffffff?text=Nequi';">
-                                        <span class="font-mono font-bold text-sm">310 664 9307</span>
-                                    </div>
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <img src="daviplata.jpg" alt="DaviPlata" class="h-5 w-auto rounded object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/60x20/df0404/ffffff?text=DaviPlata';">
-                                        <span class="font-mono font-bold text-sm">310 664 9307</span>
-                                    </div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Total Pagado ($)</label>
+                                    <input type="number" id="compTotal" placeholder="Ej: 200000" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
                                 </div>
-                                <div class="mt-2 bg-gray-100 p-1.5 rounded border border-gray-200">
-                                    <div class="flex items-center gap-1 mb-1">
-                                        <img src="breb.png" alt="Bre-B" class="h-4 w-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/50x15/2e008b/00ffb2?text=Bre-B';">
-                                        <span class="text-[10px] font-bold text-gray-700">Llaves:</span>
-                                    </div>
-                                    <p class="text-[9px] text-gray-600 leading-tight">Nequi: @3106649307<br>Transfiya: 73130375</p>
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-600 mb-1">Método de Pago</label>
+                                    <select id="compMetodo" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none bg-white">
+                                        <option value="Transferencia Bancaria">Transferencia</option>
+                                        <option value="Nequi">Nequi</option>
+                                        <option value="DaviPlata">DaviPlata</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                    </select>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- QR / Contacto -->
-                            <div class="flex flex-col items-center justify-center text-center px-2">
-                                <div class="w-16 h-16 bg-white border border-gray-300 flex items-center justify-center p-1 mb-2">
-                                    <i class="fa-solid fa-qrcode text-4xl text-gray-800"></i>
-                                </div>
-                                <p class="font-bold mb-1">Escanea para pagar</p>
-                                <p class="text-[10px] bg-green-100 text-green-800 px-2 py-1 rounded border border-green-200 mt-2">
-                                    <i class="fa-brands fa-whatsapp"></i> Reportar pago a:<br>
-                                    <strong>312 616 6637</strong><br>
-                                    (Dubanis Chico)
-                                </p>
+                        <!-- Extra -->
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Observaciones</label>
+                                <textarea id="compObs" rows="2" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none resize-none" placeholder="Ninguna"></textarea>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-gray-600 mb-1">Elaborado por:</label>
+                                <input type="text" id="compElaborado" value="Dubanis Chico" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
                             </div>
                         </div>
                     </div>
 
-                    <!-- LEGAL FOOTER -->
-                    <div class="mt-4 text-center text-[9px] text-gray-500 border-t border-gray-200 pt-2">
-                        <p>Este documento es meramente informativo y de control administrativo interno.</p>
-                        <p>No constituye una factura de venta ni un documento equivalente tributario según lo estipulado en el <strong>Art. 616-1 del Estatuto Tributario.</strong></p>
+                    <!-- Acciones -->
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                        <button onclick="window.print()" class="w-full bg-dunamis-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i> Generar Comprobante PDF
+                        </button>
+                        <button onclick="limpiarFormularioComprobante()" class="w-full mt-3 bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+                            Limpiar Campos
+                        </button>
                     </div>
+                </section>
 
-                </div>
-            </section>
-        </div>
-
-
-        <!-- ================= VIEW: COMPROBANTES ================= -->
-        <div id="view-comprobantes" class="hidden w-full h-full flex">
-            
-            <!-- PANEL DE CONTROL COMPROBANTES -->
-            <section id="comprobantes-controls-panel" class="w-[400px] min-w-[400px] bg-white shadow-xl z-10 overflow-y-auto flex flex-col">
-                <div class="p-5 border-b border-gray-200 bg-gray-50">
-                    <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-receipt text-dunamis-green mr-2"></i> Generar Comprobante</h2>
-                    <p class="text-xs text-gray-500">Confirma y certifica los pagos realizados.</p>
-                </div>
-
-                <div class="p-5 flex-1 space-y-5">
+                <!-- AREA DE VISTA PREVIA COMPROBANTE -->
+                <section id="comprobantes-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 overflow-y-auto overflow-x-auto flex md:justify-center items-start">
                     
-                    <!-- Llenado Inteligente -->
-                    <div class="bg-green-50 p-3 rounded-lg border border-green-200 shadow-sm">
-                        <label class="block text-xs font-bold text-dunamis-green mb-1"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Rellenado Automático</label>
-                        <select id="compSelectEstudiante" onchange="cargarEstudianteComprobante()" class="w-full text-sm border border-green-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none bg-white">
-                            <!-- Llenado por JS -->
-                        </select>
-                        <p class="text-[10px] text-gray-500 mt-1">Selecciona un estudiante para cargar sus datos y monto del último recordatorio.</p>
-                    </div>
-
-                    <!-- Fechas -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha Emisión</label>
-                            <input type="date" id="compEmision" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-semibold text-gray-600 mb-1">Fecha de Pago Realizado</label>
-                            <input type="date" id="compPago" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                        </div>
-                    </div>
-
-                    <!-- Datos Estudiante -->
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Nombre del Cliente / Estudiante</label>
-                            <input type="text" id="compNombre" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="col-span-2">
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Programa o Carrera</label>
-                                <input type="text" id="compPrograma" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Datos Pago -->
-                    <div class="space-y-3">
-                        <div class="grid grid-cols-2 gap-3">
-                            <div class="col-span-2">
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Concepto</label>
-                                <!-- Datalist permite seleccionar o escribir libremente -->
-                                <input list="conceptos-list" id="compConcepto" placeholder="Seleccione o escriba..." class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                                <datalist id="conceptos-list">
-                                    <option value="Matrícula"></option>
-                                    <option value="Cuota"></option>
-                                    <option value="Abono"></option>
-                                    <option value="Inscripción"></option>
-                                    <option value="Seminario"></option>
-                                    <option value="Certificado"></option>
-                                </datalist>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Total Pagado ($)</label>
-                                <input type="number" id="compTotal" placeholder="Ej: 200000" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-600 mb-1">Método de Pago</label>
-                                <select id="compMetodo" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none bg-white">
-                                    <option value="Transferencia Bancaria">Transferencia</option>
-                                    <option value="Nequi">Nequi</option>
-                                    <option value="DaviPlata">DaviPlata</option>
-                                    <option value="Efectivo">Efectivo</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Extra -->
-                    <div class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Observaciones</label>
-                            <textarea id="compObs" rows="2" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none resize-none" placeholder="Ninguna"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold text-gray-600 mb-1">Elaborado por:</label>
-                            <input type="text" id="compElaborado" value="Dubanis Chico" class="w-full text-sm border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Acciones -->
-                <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-                    <button onclick="window.print()" class="w-full bg-dunamis-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-file-pdf"></i> Generar Comprobante PDF
-                    </button>
-                    <button onclick="limpiarFormularioComprobante()" class="w-full mt-3 bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
-                        Limpiar Campos
-                    </button>
-                </div>
-            </section>
-
-            <!-- AREA DE VISTA PREVIA COMPROBANTE -->
-            <section id="comprobantes-preview-panel" class="flex-1 bg-gray-300 p-8 overflow-y-auto flex justify-center items-start">
-                
-                <!-- DOCUMENTO COMPROBANTE (A4 APAISADO/MITAD, ajustado a diseño) -->
-                <div class="a4-document w-full max-w-3xl bg-white shadow-2xl p-10 flex flex-col rounded-sm relative" style="aspect-ratio: 1/1.2;">
-                    
-                    <!-- HEADER COMPROBANTE -->
-                    <header class="flex justify-between items-start pb-6">
-                        <div class="flex items-center gap-5">
-                            <!-- Logo -->
-                            <img src="LOGO.jpg" alt="Logo Fundación Dunamis" class="w-32 h-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/318x159/ffffff/1e3a8a?text=LOGO+DUNAMIS';">
-                            <div>
-                                <h1 class="font-bold text-2xl text-dunamis-blue tracking-wide uppercase">Fundación Dunamis</h1>
-                                <p class="text-xs text-gray-500 mt-1">NIT: 901302954-6</p>
-                            </div>
-                        </div>
+                    <!-- DOCUMENTO COMPROBANTE (A4 APAISADO/MITAD, ajustado a diseño) -->
+                    <div class="a4-document min-w-[700px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative" style="aspect-ratio: 1/1.2;">
                         
-                        <div class="text-right flex flex-col items-end">
-                            <div class="bg-dunamis-green text-white px-4 py-2 rounded text-sm font-bold shadow-sm mb-3">
-                                COMPROBANTE DE PAGO
+                        <!-- HEADER COMPROBANTE -->
+                        <header class="flex justify-between items-start pb-6">
+                            <div class="flex items-center gap-5">
+                                <!-- Logo -->
+                                <img src="LOGO.jpg" alt="Logo Fundación Dunamis" class="w-24 md:w-32 h-auto object-contain" onerror="this.onerror=null; this.src='https://via.placeholder.com/318x159/ffffff/1e3a8a?text=LOGO+DUNAMIS';">
+                                <div>
+                                    <h1 class="font-bold text-lg md:text-2xl text-dunamis-blue tracking-wide uppercase">Fundación Dunamis</h1>
+                                    <p class="text-[10px] md:text-xs text-gray-500 mt-1">NIT: 901302954-6</p>
+                                </div>
                             </div>
-                            <div class="border border-green-500 text-gray-700 px-4 py-2 rounded text-xs w-full text-left">
-                                <p class="font-bold text-gray-800 mb-1">FECHA DE EMISIÓN:</p>
-                                <span id="docCompEmision">13/MAY/2026</span>
+                            
+                            <div class="text-right flex flex-col items-end">
+                                <div class="bg-dunamis-green text-white px-3 md:px-4 py-1.5 md:py-2 rounded text-xs md:text-sm font-bold shadow-sm mb-2 md:mb-3">
+                                    COMPROBANTE DE PAGO
+                                </div>
+                                <div class="border border-green-500 text-gray-700 px-3 md:px-4 py-1.5 md:py-2 rounded text-[10px] md:text-xs w-full text-left">
+                                    <p class="font-bold text-gray-800 mb-1">FECHA DE EMISIÓN:</p>
+                                    <span id="docCompEmision">13/MAY/2026</span>
+                                </div>
                             </div>
-                        </div>
-                    </header>
+                        </header>
 
-                    <!-- CAJA DE INFORMACIÓN PRINCIPAL -->
-                    <div class="border-2 border-slate-500 rounded-lg flex mb-6">
-                        <div class="flex-1 p-4 border-r-2 border-slate-500 space-y-4">
-                            <div class="flex">
-                                <span class="w-32 font-bold text-gray-700 text-sm">CLIENTE:</span>
-                                <span id="docCompNombre" class="uppercase text-sm text-gray-800">LUIS CARLOS AVILA</span>
+                        <!-- CAJA DE INFORMACIÓN PRINCIPAL -->
+                        <div class="border-2 border-slate-500 rounded-lg flex mb-6">
+                            <div class="flex-1 p-3 md:p-4 border-r-2 border-slate-500 space-y-3 md:space-y-4">
+                                <div class="flex">
+                                    <span class="w-24 md:w-32 font-bold text-gray-700 text-[10px] md:text-sm">CLIENTE:</span>
+                                    <span id="docCompNombre" class="uppercase text-[10px] md:text-sm text-gray-800">LUIS CARLOS AVILA</span>
+                                </div>
+                                <div class="flex">
+                                    <span class="w-24 md:w-32 font-bold text-gray-700 text-[10px] md:text-sm">PROGRAMA:</span>
+                                    <span id="docCompPrograma" class="uppercase text-[10px] md:text-sm text-gray-800 flex-1">AUXILIAR ADMINISTRATIVO Y CONTABLE</span>
+                                </div>
+                                <div class="flex items-center pt-1 md:pt-2">
+                                    <span class="w-24 md:w-32 font-bold text-gray-700 text-[10px] md:text-sm">MÉTODO PAGO:</span>
+                                    <span id="docCompMetodo" class="uppercase text-[10px] md:text-sm text-gray-800 bg-gray-100 px-2 py-1 rounded border border-gray-200">NEQUI</span>
+                                </div>
                             </div>
-                            <div class="flex">
-                                <span class="w-32 font-bold text-gray-700 text-sm">PROGRAMA:</span>
-                                <span id="docCompPrograma" class="uppercase text-sm text-gray-800 flex-1">AUXILIAR ADMINISTRATIVO Y CONTABLE</span>
-                            </div>
-                            <div class="flex items-center pt-2">
-                                <span class="w-32 font-bold text-gray-700 text-sm">MÉTODO PAGO:</span>
-                                <span id="docCompMetodo" class="uppercase text-sm text-gray-800 bg-gray-100 px-2 py-1 rounded">NEQUI</span>
+                            <div class="w-1/3 p-3 md:p-4 bg-slate-50 rounded-r-lg">
+                                <span class="block font-bold text-gray-700 text-[10px] md:text-sm mb-1 md:mb-2">FECHA PAGO:</span>
+                                <span id="docCompPago" class="text-[10px] md:text-sm text-gray-800">21/FEB/2026</span>
                             </div>
                         </div>
-                        <div class="w-1/3 p-4 bg-slate-50 rounded-r-lg">
-                            <span class="block font-bold text-gray-700 text-sm mb-2">FECHA PAGO:</span>
-                            <span id="docCompPago" class="text-sm text-gray-800">21/FEB/2026</span>
+
+                        <!-- TABLA DE CONCEPTO -->
+                        <div class="mb-6 border border-gray-200">
+                            <table class="w-full text-xs md:text-sm border-collapse">
+                                <thead>
+                                    <tr class="bg-dunamis-green text-white">
+                                        <th class="text-left py-1.5 md:py-2 px-3 md:px-4 font-bold border-r border-white/20">CONCEPTO</th>
+                                        <th class="text-center py-1.5 md:py-2 px-3 md:px-4 font-bold w-32 md:w-48">TOTAL PAGADO</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-3 md:py-4 px-3 md:px-4 uppercase text-gray-800 font-medium" id="docCompConcepto">CERTIFICADO</td>
+                                        <td class="text-center py-3 md:py-4 px-3 md:px-4 font-bold text-gray-800 text-base md:text-lg" id="docCompTotal">$ 0</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
+
+                        <!-- OBSERVACIONES -->
+                        <div class="border-2 border-slate-500 rounded-lg overflow-hidden mb-12">
+                            <div class="bg-slate-100 py-1.5 md:py-2 px-3 md:px-4 border-b border-slate-500 font-bold text-[10px] md:text-xs text-gray-700">
+                                OBSERVACIONES:
+                            </div>
+                            <div class="p-3 md:p-4 text-[10px] md:text-xs text-gray-800 min-h-[50px] md:min-h-[60px] uppercase" id="docCompObs">
+                                NINGUNA
+                            </div>
+                        </div>
+
+                        <!-- FIRMAS -->
+                        <div class="mt-auto grid grid-cols-2 gap-6 md:gap-10 text-center pb-2 md:pb-4">
+                            <div>
+                                <div class="border-t border-gray-400 pt-2 font-bold text-[10px] md:text-xs text-gray-800">ELABORADO POR</div>
+                                <div class="text-[10px] md:text-xs text-gray-600 mt-1 uppercase" id="docCompElaborado">DUBANIS CHICO</div>
+                            </div>
+                            <div>
+                                <div class="border-t border-gray-400 pt-2 font-bold text-[10px] md:text-xs text-gray-800">FIRMA DEL CLIENTE</div>
+                                <div class="text-[10px] md:text-xs text-gray-600 mt-1 uppercase" id="docCompFirmaNombre">LUIS CARLOS AVILA</div>
+                            </div>
+                        </div>
+
                     </div>
+                </section>
+            </div>
 
-                    <!-- TABLA DE CONCEPTO -->
-                    <div class="mb-6 border border-gray-200">
-                        <table class="w-full text-sm border-collapse">
-                            <thead>
-                                <tr class="bg-dunamis-green text-white">
-                                    <th class="text-left py-2 px-4 font-bold border-r border-white/20">CONCEPTO</th>
-                                    <th class="text-center py-2 px-4 font-bold w-48">TOTAL PAGADO</th>
+            <!-- ================= VIEW: ESTUDIANTES ================= -->
+            <div id="view-estudiantes" class="hidden w-full h-full bg-white flex flex-col p-4 md:p-8 overflow-y-auto">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Directorio de Estudiantes</h2>
+                        <p class="text-gray-500 text-xs md:text-sm">Gestiona y envía los recordatorios y comprobantes.</p>
+                    </div>
+                    <div class="w-full md:w-auto relative">
+                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="search-estudiantes" onkeyup="renderTablaEstudiantes()" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none w-full md:w-64 text-sm" placeholder="Buscar nombre / programa...">
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto w-full">
+                        <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
+                            <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+                                <tr>
+                                    <th class="py-3 px-4 w-1/4">Estudiante</th>
+                                    <th class="py-3 px-4 w-1/4">Programa</th>
+                                    <th class="py-3 px-4">Costos / Fechas</th>
+                                    <th class="py-3 px-4 text-center">Acciones y Envío (WA/Mail)</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr class="border-b border-gray-200">
-                                    <td class="py-4 px-4 uppercase text-gray-800 font-medium" id="docCompConcepto">CERTIFICADO</td>
-                                    <td class="text-center py-4 px-4 font-bold text-gray-800 text-lg" id="docCompTotal">$ 0</td>
-                                </tr>
+                            <tbody id="tabla-estudiantes-body" class="divide-y divide-gray-200">
+                                <!-- Llenado por JS -->
                             </tbody>
                         </table>
                     </div>
-
-                    <!-- OBSERVACIONES -->
-                    <div class="border-2 border-slate-500 rounded-lg overflow-hidden mb-12">
-                        <div class="bg-slate-100 py-2 px-4 border-b border-slate-500 font-bold text-xs text-gray-700">
-                            OBSERVACIONES:
-                        </div>
-                        <div class="p-4 text-xs text-gray-800 min-h-[60px] uppercase" id="docCompObs">
-                            NINGUNA
-                        </div>
-                    </div>
-
-                    <!-- FIRMAS -->
-                    <div class="mt-auto grid grid-cols-2 gap-10 text-center pb-4">
-                        <div>
-                            <div class="border-t border-gray-400 pt-2 font-bold text-xs text-gray-800">ELABORADO POR</div>
-                            <div class="text-xs text-gray-600 mt-1 uppercase" id="docCompElaborado">DUBANIS CHICO</div>
-                        </div>
-                        <div>
-                            <div class="border-t border-gray-400 pt-2 font-bold text-xs text-gray-800">FIRMA DEL CLIENTE</div>
-                            <div class="text-xs text-gray-600 mt-1 uppercase" id="docCompFirmaNombre">LUIS CARLOS AVILA</div>
-                        </div>
-                    </div>
-
-                </div>
-            </section>
-        </div>
-
-        <!-- ================= VIEW: ESTUDIANTES ================= -->
-        <div id="view-estudiantes" class="hidden w-full h-full bg-white flex flex-col p-8 overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-dunamis-blue">Directorio de Estudiantes</h2>
-                    <p class="text-gray-500 text-sm">Gestiona y envía los recordatorios guardados.</p>
-                </div>
-                <div class="flex gap-2">
-                    <div class="relative">
-                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
-                        <input type="text" id="search-estudiantes" onkeyup="renderTablaEstudiantes()" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none w-64 text-sm" placeholder="Buscar por nombre o programa...">
+                    <div id="estudiantes-empty" class="hidden flex-1 flex flex-col items-center justify-center p-10 text-gray-400">
+                        <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                        <p class="text-center">No hay registros guardados.<br>Crea uno en la pestaña Recordatorios.</p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
-                <table class="w-full text-left text-sm text-gray-600">
-                    <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
-                        <tr>
-                            <th class="py-3 px-4">Estudiante</th>
-                            <th class="py-3 px-4">Programa</th>
-                            <th class="py-3 px-4">Fechas (Emisión / Venc.)</th>
-                            <th class="py-3 px-4">Total a Pagar</th>
-                            <th class="py-3 px-4 text-center">Acciones y Envío</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabla-estudiantes-body" class="divide-y divide-gray-200">
-                        <!-- Llenado por JS -->
-                    </tbody>
-                </table>
-                <div id="estudiantes-empty" class="hidden flex-1 flex flex-col items-center justify-center p-10 text-gray-400">
-                    <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
-                    <p>No hay estudiantes guardados. Crea uno en la pestaña Recordatorios.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- ================= VIEW: CONFIGURACIÓN ================= -->
-        <div id="view-configuracion" class="hidden w-full h-full bg-gray-50 flex flex-col p-8 overflow-hidden">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-dunamis-blue">Gestión de Parámetros</h2>
-                <p class="text-gray-500 text-sm">Agrega, edita o elimina programas académicos y plantillas financieras.</p>
-            </div>
-
-            <div class="flex-1 flex gap-6 overflow-hidden">
-                
-                <!-- COLUMNA 1: PROGRAMAS -->
-                <div class="w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
-                    <div class="bg-dunamis-blue text-white p-4">
-                        <h3 class="font-bold text-lg"><i class="fa-solid fa-book mr-2"></i> Programas</h3>
-                    </div>
-                    <div class="p-4 border-b border-gray-200 bg-gray-50 flex gap-2">
-                        <input type="text" id="nuevo-programa-input" class="flex-1 border border-gray-300 rounded p-2 text-sm focus:ring-2 focus:ring-dunamis-blue focus:outline-none" placeholder="Nuevo programa...">
-                        <button onclick="agregarPrograma()" class="bg-dunamis-accent text-white px-3 py-2 rounded font-bold hover:bg-yellow-600 transition"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <ul id="lista-programas-config" class="flex-1 overflow-y-auto p-2 space-y-1">
-                        <!-- Llenado por JS -->
-                    </ul>
+            <!-- ================= VIEW: CONFIGURACIÓN ================= -->
+            <div id="view-configuracion" class="hidden w-full h-full bg-gray-50 flex flex-col p-4 md:p-8 overflow-hidden">
+                <div class="mb-6">
+                    <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Gestión de Parámetros</h2>
+                    <p class="text-gray-500 text-xs md:text-sm">Agrega, edita o elimina programas académicos y plantillas financieras.</p>
                 </div>
 
-                <!-- COLUMNA 2: PLANTILLAS (Lista + Editor) -->
-                <div class="w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex overflow-hidden">
+                <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
                     
-                    <!-- Lista de Plantillas -->
-                    <div class="w-1/3 border-r border-gray-200 bg-gray-50 flex flex-col">
-                        <div class="bg-dunamis-blue text-white p-4">
-                            <h3 class="font-bold text-lg"><i class="fa-solid fa-sliders mr-2"></i> Plantillas</h3>
+                    <!-- COLUMNA 1: PROGRAMAS -->
+                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[300px] lg:h-auto">
+                        <div class="bg-dunamis-blue text-white p-3 md:p-4">
+                            <h3 class="font-bold text-base md:text-lg"><i class="fa-solid fa-book mr-2"></i> Programas</h3>
                         </div>
-                        <div class="p-3 border-b border-gray-200">
-                            <button onclick="prepararNuevaPlantilla()" class="w-full bg-dunamis-accent text-white font-bold py-2 px-3 rounded shadow hover:bg-yellow-600 transition text-sm">
-                                <i class="fa-solid fa-plus"></i> Crear Plantilla
-                            </button>
+                        <div class="p-3 md:p-4 border-b border-gray-200 bg-gray-50 flex gap-2">
+                            <input type="text" id="nuevo-programa-input" class="flex-1 border border-gray-300 rounded p-2 text-xs md:text-sm focus:ring-2 focus:ring-dunamis-blue focus:outline-none" placeholder="Nuevo programa...">
+                            <button onclick="agregarPrograma()" class="bg-dunamis-accent text-white px-3 py-2 rounded font-bold hover:bg-yellow-600 transition"><i class="fa-solid fa-plus"></i></button>
                         </div>
-                        <ul id="lista-plantillas-ui" class="overflow-y-auto flex-1 p-2 space-y-1">
+                        <ul id="lista-programas-config" class="flex-1 overflow-y-auto p-2 space-y-1">
                             <!-- Llenado por JS -->
                         </ul>
                     </div>
 
-                    <!-- Editor de Plantilla -->
-                    <div class="w-2/3 p-6 overflow-y-auto bg-white flex flex-col relative">
-                        <div id="editor-plantilla" class="hidden h-full flex flex-col">
-                            <div class="mb-4">
-                                <label class="block text-sm font-bold text-gray-700 mb-1">Nombre de la Plantilla</label>
-                                <input type="text" id="edit-plantilla-nombre" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none" placeholder="Ej: Carrera Técnica - Promoción Especial">
-                            </div>
-
-                            <div class="mb-4 flex-1">
-                                <div class="flex justify-between items-end mb-2 border-b pb-1">
-                                    <h4 class="text-sm font-bold text-gray-700">Conceptos por Defecto</h4>
-                                    <button onclick="addFilaPlantillaModal()" class="text-xs text-dunamis-blue hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus"></i> Añadir Concepto</button>
-                                </div>
-                                <div id="modal-items-container" class="space-y-2">
-                                    <!-- Inyectado dinámicamente -->
-                                </div>
-                            </div>
-
-                            <div class="mt-4 pt-4 flex justify-end gap-3 border-t border-gray-200">
-                                <button onclick="eliminarPlantillaActual()" id="btn-eliminar-plantilla" class="px-4 py-2 text-red-600 hover:bg-red-50 rounded font-semibold text-sm mr-auto"><i class="fa-solid fa-trash"></i> Eliminar</button>
-                                <button onclick="guardarPlantillaModal()" class="px-6 py-2 bg-dunamis-blue hover:bg-blue-800 text-white rounded font-bold shadow text-sm">Guardar Plantilla</button>
-                            </div>
-                        </div>
+                    <!-- COLUMNA 2: PLANTILLAS (Lista + Editor) -->
+                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden flex-1">
                         
-                        <div id="editor-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-400">
-                            <i class="fa-solid fa-hand-pointer text-4xl mb-2"></i>
-                            <p>Selecciona una plantilla o crea una nueva.</p>
+                        <!-- Lista de Plantillas -->
+                        <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 flex flex-col h-48 md:h-auto">
+                            <div class="bg-dunamis-blue text-white p-3 md:p-4">
+                                <h3 class="font-bold text-base md:text-lg"><i class="fa-solid fa-sliders mr-2"></i> Plantillas</h3>
+                            </div>
+                            <div class="p-2 md:p-3 border-b border-gray-200">
+                                <button onclick="prepararNuevaPlantilla()" class="w-full bg-dunamis-accent text-white font-bold py-2 px-3 rounded shadow hover:bg-yellow-600 transition text-xs md:text-sm">
+                                    <i class="fa-solid fa-plus"></i> Crear Plantilla
+                                </button>
+                            </div>
+                            <ul id="lista-plantillas-ui" class="overflow-y-auto flex-1 p-2 space-y-1">
+                                <!-- Llenado por JS -->
+                            </ul>
+                        </div>
+
+                        <!-- Editor de Plantilla -->
+                        <div class="w-full md:w-2/3 p-4 md:p-6 overflow-y-auto bg-white flex flex-col relative flex-1">
+                            <div id="editor-plantilla" class="hidden h-full flex flex-col">
+                                <div class="mb-4">
+                                    <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1">Nombre de la Plantilla</label>
+                                    <input type="text" id="edit-plantilla-nombre" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none text-sm" placeholder="Ej: Carrera Técnica - Promoción Especial">
+                                </div>
+
+                                <div class="mb-4 flex-1">
+                                    <div class="flex justify-between items-end mb-2 border-b pb-1">
+                                        <h4 class="text-xs md:text-sm font-bold text-gray-700">Conceptos por Defecto</h4>
+                                        <button onclick="addFilaPlantillaModal()" class="text-xs text-dunamis-blue hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus"></i> Añadir Concepto</button>
+                                    </div>
+                                    <div id="modal-items-container" class="space-y-2">
+                                        <!-- Inyectado dinámicamente -->
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 pt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200">
+                                    <button onclick="eliminarPlantillaActual()" id="btn-eliminar-plantilla" class="px-3 md:px-4 py-2 text-red-600 hover:bg-red-50 rounded font-semibold text-xs md:text-sm mr-auto"><i class="fa-solid fa-trash"></i> Eliminar</button>
+                                    <button onclick="guardarPlantillaModal()" class="px-4 md:px-6 py-2 bg-dunamis-blue hover:bg-blue-800 text-white rounded font-bold shadow text-xs md:text-sm">Guardar Plantilla</button>
+                                </div>
+                            </div>
+                            
+                            <div id="editor-empty-state" class="flex-1 flex flex-col items-center justify-center text-gray-400 py-10">
+                                <i class="fa-solid fa-hand-pointer text-3xl md:text-4xl mb-2"></i>
+                                <p class="text-sm text-center">Selecciona una plantilla o crea una nueva.</p>
+                            </div>
                         </div>
                     </div>
+
                 </div>
-
             </div>
-        </div>
 
+        </div>
     </main>
 
     <!-- LOGICA JAVASCRIPT -->
@@ -719,7 +747,14 @@
             renderTablaEstudiantes();
         }
 
-        // ---------------- NAVEGACIÓN Y VISTAS ----------------
+        // ---------------- NAVEGACIÓN Y VISTAS (RESPONSIVE) ----------------
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            sidebar.classList.toggle('-translate-x-full');
+            backdrop.classList.toggle('hidden');
+        }
+
         function switchView(viewName) {
             // Reset styles
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'bg-blue-800', 'text-white'));
@@ -746,6 +781,14 @@
             } else if (viewName === 'comprobantes') {
                 document.getElementById('view-comprobantes').classList.remove('hidden');
                 actualizarSelectEstudiantesComp();
+            }
+
+            // Auto close sidebar on mobile after clicking
+            if(window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebar');
+                if(!sidebar.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
+                }
             }
         }
 
@@ -824,11 +867,11 @@
             itemsCobroFormulario.forEach((item, index) => {
                 const totalFila = item.cant * item.valor; total += totalFila;
                 const rowCtrl = document.createElement('div');
-                rowCtrl.className = "flex gap-2 items-center bg-white p-2 border border-gray-200 rounded shadow-sm";
+                rowCtrl.className = "flex gap-1 md:gap-2 items-center bg-white p-2 border border-gray-200 rounded shadow-sm";
                 rowCtrl.innerHTML = `
-                    <input type="number" min="1" value="${item.cant}" onchange="updateItem(${index}, 'cant', this.value)" class="w-16 text-sm border p-1 rounded text-center focus:ring-1 focus:ring-dunamis-blue">
-                    <input type="text" value="${item.desc}" placeholder="Descripción" onchange="updateItem(${index}, 'desc', this.value)" class="flex-1 text-sm border p-1 rounded focus:ring-1 focus:ring-dunamis-blue">
-                    <input type="number" value="${item.valor}" placeholder="$" onchange="updateItem(${index}, 'valor', this.value)" class="w-28 text-sm border p-1 rounded text-right focus:ring-1 focus:ring-dunamis-blue">
+                    <input type="number" min="1" value="${item.cant}" onchange="updateItem(${index}, 'cant', this.value)" class="w-12 md:w-16 text-xs md:text-sm border p-1 rounded text-center focus:ring-1 focus:ring-dunamis-blue">
+                    <input type="text" value="${item.desc}" placeholder="Descripción" onchange="updateItem(${index}, 'desc', this.value)" class="flex-1 text-xs md:text-sm border p-1 rounded focus:ring-1 focus:ring-dunamis-blue">
+                    <input type="number" value="${item.valor}" placeholder="$" onchange="updateItem(${index}, 'valor', this.value)" class="w-20 md:w-28 text-xs md:text-sm border p-1 rounded text-right focus:ring-1 focus:ring-dunamis-blue">
                     <button onclick="removeRow(${index})" class="text-red-400 hover:text-red-600 px-1"><i class="fa-solid fa-trash"></i></button>
                 `;
                 container.appendChild(rowCtrl);
@@ -908,7 +951,6 @@
             document.getElementById('docCompPago').innerText = formatFechaCorto(document.getElementById('compPago').value);
         }
 
-        // Bindeos simples Comprobantes
         bindText('compNombre', 'docCompNombre');
         bindText('compNombre', 'docCompFirmaNombre');
         bindText('compPrograma', 'docCompPrograma');
@@ -916,18 +958,15 @@
         bindText('compMetodo', 'docCompMetodo');
         bindText('compElaborado', 'docCompElaborado');
         
-        // Manejo especial de texto para Observaciones (si está vacio poner "NINGUNA")
         document.getElementById('compObs').addEventListener('input', (e) => {
             document.getElementById('docCompObs').innerText = e.target.value.trim() || 'NINGUNA';
         });
 
-        // Manejo especial de moneda para el Total Pagado
         document.getElementById('compTotal').addEventListener('input', (e) => {
             const val = Number(e.target.value) || 0;
             document.getElementById('docCompTotal').innerText = formatter.format(val);
         });
 
-        // Fechas eventos
         document.getElementById('compEmision').addEventListener('change', updatePreviewFechasComp);
         document.getElementById('compPago').addEventListener('change', updatePreviewFechasComp);
 
@@ -946,19 +985,16 @@
             const est = estudiantesDB.find(e => e.id === id);
             
             if(est) {
-                // Llenar campos
                 document.getElementById('compNombre').value = est.nombre;
                 document.getElementById('compPrograma').value = est.programa || "";
                 document.getElementById('compTotal').value = est.total;
                 
-                // Tratar de inferir el concepto de los items cobrados
                 let conceptosText = "Abono / Cuota";
                 if(est.items && est.items.length > 0) {
                     conceptosText = est.items.map(i => i.desc).join(" + ");
                 }
                 document.getElementById('compConcepto').value = conceptosText;
                 
-                // Disparar eventos para actualizar vista previa
                 ['compNombre', 'compPrograma', 'compTotal', 'compConcepto'].forEach(id => {
                     document.getElementById(id).dispatchEvent(new Event('input'));
                 });
@@ -975,7 +1011,6 @@
             document.getElementById('compMetodo').value = 'Transferencia Bancaria';
             setFechasDefectoComprobante();
 
-            // Disparar eventos para borrar preview
             ['compNombre', 'compPrograma', 'compTotal', 'compConcepto', 'compMetodo', 'compObs'].forEach(id => {
                 document.getElementById(id).dispatchEvent(new Event('input'));
             });
@@ -1001,23 +1036,41 @@
             filtered.forEach(est => {
                 const tr = document.createElement('tr');
                 tr.className = "hover:bg-blue-50 transition-colors";
-                const textMsg = `Hola ${est.nombre}, adjunto te compartimos el recordatorio de pago de la Fundación Dunamis. Total a pagar: ${formatter.format(est.total)}. Vencimiento: ${formatFechaCorto(est.vencimiento)}. ¡Bendiciones!`;
-                const wsLink = `https://wa.me/?text=${encodeURIComponent(textMsg)}`;
-                const mailLink = `mailto:?subject=Recordatorio de Pago - Fundación Dunamis&body=${encodeURIComponent(textMsg)}`;
+                
+                // Mensajes de Envio (Recordatorio vs Comprobante)
+                const textMsgRec = `Hola ${est.nombre}, adjunto te compartimos el recordatorio de pago de la Fundación Dunamis. Total a pagar: ${formatter.format(est.total)}. Vencimiento: ${formatFechaCorto(est.vencimiento)}. ¡Bendiciones!`;
+                const textMsgComp = `Hola ${est.nombre}, confirmamos la recepción de tu pago por valor de ${formatter.format(est.total)}. Adjunto te compartimos tu comprobante de pago de la Fundación Dunamis. ¡Bendiciones!`;
+                
+                const wsLinkRec = `https://wa.me/?text=${encodeURIComponent(textMsgRec)}`;
+                const mailLinkRec = `mailto:?subject=Recordatorio de Pago - Fundación Dunamis&body=${encodeURIComponent(textMsgRec)}`;
+                const wsLinkComp = `https://wa.me/?text=${encodeURIComponent(textMsgComp)}`;
+                const mailLinkComp = `mailto:?subject=Comprobante de Pago - Fundación Dunamis&body=${encodeURIComponent(textMsgComp)}`;
 
                 tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold text-gray-800 uppercase">${est.nombre}</td>
-                    <td class="py-3 px-4 text-xs">${est.programa || '-'}</td>
-                    <td class="py-3 px-4">
-                        <div class="text-xs font-bold text-gray-700">Emisión: ${formatFechaCorto(est.emision)}</div>
-                        <div class="text-[11px] font-semibold text-dunamis-blue mt-1">Vence: ${formatFechaCorto(est.vencimiento)}</div>
+                    <td class="py-3 px-4 font-semibold text-gray-800 uppercase min-w-[150px]">${est.nombre}</td>
+                    <td class="py-3 px-4 text-xs min-w-[150px]">${est.programa || '-'}</td>
+                    <td class="py-3 px-4 min-w-[150px]">
+                        <div class="font-bold text-gray-800 text-sm mb-1">${formatter.format(est.total)}</div>
+                        <div class="text-[10px] text-gray-500">Emisión: ${formatFechaCorto(est.emision)}</div>
+                        <div class="text-[10px] text-dunamis-blue font-bold">Vence: ${formatFechaCorto(est.vencimiento)}</div>
                     </td>
-                    <td class="py-3 px-4 font-bold text-gray-800">${formatter.format(est.total)}</td>
-                    <td class="py-3 px-4 text-center space-x-1">
-                        <button onclick="editarEstudiante('${est.id}')" title="Editar y Ver Documento" class="text-blue-600 hover:bg-blue-100 p-2 rounded-full transition"><i class="fa-solid fa-pen"></i></button>
-                        <a href="${wsLink}" target="_blank" title="Enviar WhatsApp" class="inline-block text-green-600 hover:bg-green-100 p-2 rounded-full transition"><i class="fa-brands fa-whatsapp text-lg"></i></a>
-                        <a href="${mailLink}" target="_blank" title="Enviar Correo" class="inline-block text-red-500 hover:bg-red-100 p-2 rounded-full transition"><i class="fa-solid fa-envelope"></i></a>
-                        <button onclick="eliminarEstudiante('${est.id}')" title="Eliminar" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition"><i class="fa-solid fa-trash"></i></button>
+                    <td class="py-2 px-3 min-w-[180px]">
+                        <!-- Botones de edicion/eliminar -->
+                        <div class="flex justify-center gap-1 mb-2">
+                            <button onclick="editarEstudiante('${est.id}')" title="Editar Información" class="text-blue-600 hover:bg-blue-100 p-1.5 rounded transition"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="eliminarEstudiante('${est.id}')" title="Eliminar Registro" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        
+                        <!-- Panel de envios doble -->
+                        <div class="grid grid-cols-2 gap-x-1 md:gap-x-2 gap-y-1 text-center bg-gray-50 p-1 md:p-1.5 rounded border border-gray-100 shadow-sm">
+                            <div class="col-span-2 text-[9px] md:text-[10px] font-bold text-dunamis-blue uppercase border-b border-gray-200 pb-0.5">Recordatorio</div>
+                            <a href="${wsLinkRec}" target="_blank" title="WhatsApp" class="text-green-600 hover:bg-green-100 p-1 rounded flex justify-center items-center"><i class="fa-brands fa-whatsapp text-sm md:text-lg"></i></a>
+                            <a href="${mailLinkRec}" target="_blank" title="Correo" class="text-red-500 hover:bg-red-100 p-1 rounded flex justify-center items-center"><i class="fa-solid fa-envelope text-sm"></i></a>
+                            
+                            <div class="col-span-2 text-[9px] md:text-[10px] font-bold text-dunamis-green uppercase border-b border-gray-200 pb-0.5 mt-1">Comprobante</div>
+                            <a href="${wsLinkComp}" target="_blank" title="WhatsApp" class="text-green-600 hover:bg-green-100 p-1 rounded flex justify-center items-center"><i class="fa-brands fa-whatsapp text-sm md:text-lg"></i></a>
+                            <a href="${mailLinkComp}" target="_blank" title="Correo" class="text-red-500 hover:bg-red-100 p-1 rounded flex justify-center items-center"><i class="fa-solid fa-envelope text-sm"></i></a>
+                        </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -1049,6 +1102,7 @@
                 estudiantesDB = estudiantesDB.filter(e => e.id !== id);
                 localStorage.setItem('dunamis_estudiantes', JSON.stringify(estudiantesDB));
                 renderTablaEstudiantes();
+                actualizarSelectEstudiantesComp();
             }
         }
 
@@ -1063,7 +1117,7 @@
             ul.innerHTML = '';
             programasDB.forEach((prog, index) => {
                 const li = document.createElement('li');
-                li.className = "flex justify-between items-center p-2 bg-white border border-gray-200 rounded text-sm";
+                li.className = "flex justify-between items-center p-2 bg-white border border-gray-200 rounded text-xs md:text-sm";
                 li.innerHTML = `<span class="font-semibold text-gray-700">${prog}</span><button onclick="eliminarPrograma(${index})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash"></i></button>`;
                 ul.appendChild(li);
             });
@@ -1095,7 +1149,7 @@
             ul.innerHTML = '';
             plantillasDB.forEach(p => {
                 const li = document.createElement('li');
-                li.className = `p-2 rounded cursor-pointer text-sm font-semibold border ${editingPlantillaId === p.id ? 'bg-blue-100 border-blue-300 text-dunamis-blue' : 'bg-white border-gray-200 hover:bg-gray-100 text-gray-700'}`;
+                li.className = `p-2 rounded cursor-pointer text-xs md:text-sm font-semibold border ${editingPlantillaId === p.id ? 'bg-blue-100 border-blue-300 text-dunamis-blue' : 'bg-white border-gray-200 hover:bg-gray-100 text-gray-700'}`;
                 li.onclick = () => cargarPlantillaEditor(p.id);
                 li.innerText = p.nombre;
                 ul.appendChild(li);
@@ -1141,11 +1195,11 @@
             cont.innerHTML = '';
             itemsCobroModal.forEach((item, index) => {
                 const div = document.createElement('div');
-                div.className = "flex gap-2 items-center bg-gray-50 p-2 border border-gray-200 rounded";
+                div.className = "flex gap-1 md:gap-2 items-center bg-gray-50 p-2 border border-gray-200 rounded";
                 div.innerHTML = `
-                    <input type="number" min="1" value="${item.cant}" onchange="updateFilaPlantillaModal(${index}, 'cant', this.value)" class="w-16 text-sm border p-1 rounded text-center">
-                    <input type="text" value="${item.desc}" placeholder="Concepto (Ej: Matrícula)" onchange="updateFilaPlantillaModal(${index}, 'desc', this.value)" class="flex-1 text-sm border p-1 rounded">
-                    <input type="number" value="${item.valor}" placeholder="Precio" onchange="updateFilaPlantillaModal(${index}, 'valor', this.value)" class="w-28 text-sm border p-1 rounded text-right">
+                    <input type="number" min="1" value="${item.cant}" onchange="updateFilaPlantillaModal(${index}, 'cant', this.value)" class="w-12 md:w-16 text-xs md:text-sm border p-1 rounded text-center">
+                    <input type="text" value="${item.desc}" placeholder="Concepto (Ej: Matrícula)" onchange="updateFilaPlantillaModal(${index}, 'desc', this.value)" class="flex-1 text-xs md:text-sm border p-1 rounded">
+                    <input type="number" value="${item.valor}" placeholder="Precio" onchange="updateFilaPlantillaModal(${index}, 'valor', this.value)" class="w-20 md:w-28 text-xs md:text-sm border p-1 rounded text-right">
                     <button onclick="rmFilaPlantillaModal(${index})" class="text-red-400 hover:text-red-600 px-1"><i class="fa-solid fa-trash"></i></button>
                 `;
                 cont.appendChild(div);
