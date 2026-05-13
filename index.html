@@ -144,10 +144,10 @@
         <div class="flex-1 flex overflow-hidden relative w-full">
             
             <!-- ================= VIEW: RECORDATORIOS ================= -->
-            <div id="view-recordatorios" class="w-full flex flex-col md:flex-row h-full">
+            <div id="view-recordatorios" class="w-full flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
                 
                 <!-- PANEL DE CONTROL (FORMULARIO) -->
-                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 h-auto md:h-full md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
                     <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                         <div>
                             <h2 class="text-lg font-bold text-gray-800" id="form-title">Generar Recordatorio</h2>
@@ -235,7 +235,7 @@
                 </section>
 
                 <!-- AREA DE VISTA PREVIA DEL DOCUMENTO -->
-                <section id="recordatorios-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                <section id="recordatorios-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 h-auto md:h-full md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
                     
                     <!-- EL DOCUMENTO (ESTILO HOJA A4) -->
                     <div class="a4-document min-w-[750px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative">
@@ -376,12 +376,11 @@
                 </section>
             </div>
 
-
             <!-- ================= VIEW: COMPROBANTES ================= -->
-            <div id="view-comprobantes" class="hidden w-full flex flex-col md:flex-row h-full">
+            <div id="view-comprobantes" class="hidden w-full flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
                 
                 <!-- PANEL DE CONTROL COMPROBANTES -->
-                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 h-auto md:h-full md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
                     <div class="p-5 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-receipt text-dunamis-green mr-2"></i> Generar Comprobante</h2>
                         <p class="text-xs text-gray-500">Confirma y certifica los pagos realizados.</p>
@@ -480,7 +479,7 @@
                 </section>
 
                 <!-- AREA DE VISTA PREVIA COMPROBANTE -->
-                <section id="comprobantes-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                <section id="comprobantes-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 h-auto md:h-full md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
                     
                     <!-- DOCUMENTO COMPROBANTE (A4 APAISADO/MITAD, ajustado a diseño) -->
                     <div class="a4-document min-w-[700px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative" style="aspect-ratio: 1/1.2;">
@@ -610,16 +609,16 @@
             </div>
 
             <!-- ================= VIEW: CONFIGURACIÓN ================= -->
-            <div id="view-configuracion" class="hidden w-full h-full bg-gray-50 flex flex-col p-4 md:p-8 overflow-hidden">
-                <div class="mb-6">
+            <div id="view-configuracion" class="hidden w-full h-full bg-gray-50 flex flex-col p-4 md:p-8 overflow-y-auto lg:overflow-hidden">
+                <div class="mb-6 shrink-0">
                     <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Gestión de Parámetros</h2>
                     <p class="text-gray-500 text-xs md:text-sm">Agrega, edita o elimina programas académicos y plantillas financieras.</p>
                 </div>
 
-                <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
+                <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-visible lg:overflow-hidden h-auto lg:h-full shrink-0">
                     
                     <!-- COLUMNA 1: PROGRAMAS -->
-                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[300px] lg:h-auto">
+                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[300px] lg:h-auto shrink-0">
                         <div class="bg-dunamis-blue text-white p-3 md:p-4">
                             <h3 class="font-bold text-base md:text-lg"><i class="fa-solid fa-book mr-2"></i> Programas</h3>
                         </div>
@@ -633,7 +632,7 @@
                     </div>
 
                     <!-- COLUMNA 2: PLANTILLAS (Lista + Editor) -->
-                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden flex-1">
+                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden flex-1 shrink-0 h-auto lg:h-full min-h-[500px] lg:min-h-0">
                         
                         <!-- Lista de Plantillas -->
                         <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 flex flex-col h-48 md:h-auto">
@@ -1256,5 +1255,7 @@
         });
       }
     </script>
+</body>
+</html>
 </body>
 </html>
