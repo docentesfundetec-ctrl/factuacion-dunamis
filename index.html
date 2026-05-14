@@ -34,25 +34,41 @@
         }
     </script>
     <style>
-        /* Estilos para impresión / Exportar a PDF */
+        /* Estilos optimizados para impresión / Exportar a PDF en Android y PC */
         @media print {
+            @page {
+                size: A4;
+                margin: 5mm;
+            }
             body, html, main { 
                 background-color: white !important; 
                 overflow: visible !important;
                 height: auto !important;
+                width: 100% !important;
+                position: static !important;
+                display: block !important;
             }
             #sidebar, section[id$="controls-panel"], .no-print, header.mobile-header { display: none !important; }
             .hidden { display: none !important; }
             
-            /* Forzar el panel de vista previa para impresión */
+            /* Desactivar flexbox en contenedores que limitan la altura para evitar recortes */
+            .flex-1, div[id^="view-"] {
+                display: block !important;
+                height: auto !important;
+                overflow: visible !important;
+                position: static !important;
+            }
+
+            /* Forzar el panel de vista previa a expandirse completamente */
             section[id$="preview-panel"] { 
                 width: 100% !important; 
                 margin: 0 !important; 
                 padding: 0 !important; 
                 box-shadow: none !important;
                 background-color: white !important;
-                display: flex !important;
+                display: block !important;
                 overflow: visible !important;
+                height: auto !important;
             }
             ::-webkit-scrollbar {
                 display: none !important;
@@ -64,7 +80,10 @@
                 min-width: 0 !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                transform: scale(1) !important;
+                transform: none !important;
+                height: auto !important;
+                aspect-ratio: auto !important;
+                page-break-inside: avoid;
             }
             * {
                 -webkit-print-color-adjust: exact !important;
@@ -88,7 +107,8 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 flex h-screen w-full overflow-hidden font-sans text-gray-800 relative">
+<!-- h-[100dvh] asegura que la app se adapte a las barras de navegación dinámicas de Android -->
+<body class="bg-gray-100 flex h-[100dvh] w-full overflow-hidden font-sans text-gray-800 relative">
 
     <!-- BACKDROP PARA MOVIL -->
     <div id="sidebar-backdrop" onclick="toggleSidebar()" class="hidden md:hidden fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity"></div>
@@ -122,7 +142,7 @@
             </button>
         </nav>
         <div class="p-4 border-t border-blue-800 text-xs text-center text-blue-400">
-            v1.4 - Multiplataforma
+            v1.5 - Optimizado Android
         </div>
     </aside>
 
@@ -140,14 +160,15 @@
             </button>
         </header>
 
-        <!-- VIEWS CONTAINER -->
-        <div class="flex-1 flex overflow-hidden relative w-full">
+        <!-- VIEWS CONTAINER: Ahora permite scroll vertical fluido en móvil (overflow-y-auto md:overflow-hidden) -->
+        <div class="flex-1 block md:flex overflow-y-auto md:overflow-hidden relative w-full">
             
             <!-- ================= VIEW: RECORDATORIOS ================= -->
-            <div id="view-recordatorios" class="w-full flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
+            <div id="view-recordatorios" class="w-full flex flex-col md:flex-row h-auto md:h-full pb-10 md:pb-0">
                 
                 <!-- PANEL DE CONTROL (FORMULARIO) -->
-                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 h-auto md:h-full md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                <!-- En móvil, h-auto para que los botones fluyan naturalmente sin cortarse -->
+                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] flex-shrink-0 bg-white shadow-xl z-10 md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200 h-auto md:h-full">
                     <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
                         <div>
                             <h2 class="text-lg font-bold text-gray-800" id="form-title">Generar Recordatorio</h2>
@@ -224,7 +245,7 @@
                     </div>
 
                     <!-- Acciones -->
-                    <div class="p-5 bg-gray-50 border-t border-gray-200 gap-3 flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 gap-3 flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] mt-auto">
                         <button onclick="guardarRegistro()" class="w-full bg-dunamis-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
                             <i class="fa-solid fa-save"></i> Guardar Estudiante / Registro
                         </button>
@@ -235,7 +256,7 @@
                 </section>
 
                 <!-- AREA DE VISTA PREVIA DEL DOCUMENTO -->
-                <section id="recordatorios-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 h-auto md:h-full md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                <section id="recordatorios-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
                     
                     <!-- EL DOCUMENTO (ESTILO HOJA A4) -->
                     <div class="a4-document min-w-[750px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative">
@@ -376,11 +397,12 @@
                 </section>
             </div>
 
+
             <!-- ================= VIEW: COMPROBANTES ================= -->
-            <div id="view-comprobantes" class="hidden w-full flex flex-col md:flex-row h-full overflow-y-auto md:overflow-hidden">
+            <div id="view-comprobantes" class="hidden w-full flex flex-col md:flex-row h-auto md:h-full pb-10 md:pb-0">
                 
                 <!-- PANEL DE CONTROL COMPROBANTES -->
-                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 h-auto md:h-full md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
+                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] flex-shrink-0 bg-white shadow-xl z-10 md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200 h-auto md:h-full">
                     <div class="p-5 border-b border-gray-200 bg-gray-50">
                         <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-receipt text-dunamis-green mr-2"></i> Generar Comprobante</h2>
                         <p class="text-xs text-gray-500">Confirma y certifica los pagos realizados.</p>
@@ -468,7 +490,7 @@
                     </div>
 
                     <!-- Acciones -->
-                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] mt-auto">
                         <button onclick="window.print()" class="w-full bg-dunamis-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
                             <i class="fa-solid fa-file-pdf"></i> Generar Comprobante PDF
                         </button>
@@ -479,7 +501,7 @@
                 </section>
 
                 <!-- AREA DE VISTA PREVIA COMPROBANTE -->
-                <section id="comprobantes-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 h-auto md:h-full md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                <section id="comprobantes-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
                     
                     <!-- DOCUMENTO COMPROBANTE (A4 APAISADO/MITAD, ajustado a diseño) -->
                     <div class="a4-document min-w-[700px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative" style="aspect-ratio: 1/1.2;">
@@ -573,7 +595,7 @@
             </div>
 
             <!-- ================= VIEW: ESTUDIANTES ================= -->
-            <div id="view-estudiantes" class="hidden w-full h-full bg-white flex flex-col p-4 md:p-8 overflow-y-auto">
+            <div id="view-estudiantes" class="hidden w-full h-auto md:h-full bg-white flex flex-col p-4 md:p-8 md:overflow-y-auto">
                 <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                     <div>
                         <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Directorio de Estudiantes</h2>
@@ -609,16 +631,16 @@
             </div>
 
             <!-- ================= VIEW: CONFIGURACIÓN ================= -->
-            <div id="view-configuracion" class="hidden w-full h-full bg-gray-50 flex flex-col p-4 md:p-8 overflow-y-auto lg:overflow-hidden">
-                <div class="mb-6 shrink-0">
+            <div id="view-configuracion" class="hidden w-full h-auto md:h-full bg-gray-50 flex flex-col p-4 md:p-8 md:overflow-y-auto pb-10">
+                <div class="mb-6">
                     <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Gestión de Parámetros</h2>
                     <p class="text-gray-500 text-xs md:text-sm">Agrega, edita o elimina programas académicos y plantillas financieras.</p>
                 </div>
 
-                <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-visible lg:overflow-hidden h-auto lg:h-full shrink-0">
+                <div class="flex-1 flex flex-col lg:flex-row gap-6 md:overflow-hidden h-auto md:h-full">
                     
                     <!-- COLUMNA 1: PROGRAMAS -->
-                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[300px] lg:h-auto shrink-0">
+                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[300px] lg:h-auto">
                         <div class="bg-dunamis-blue text-white p-3 md:p-4">
                             <h3 class="font-bold text-base md:text-lg"><i class="fa-solid fa-book mr-2"></i> Programas</h3>
                         </div>
@@ -632,7 +654,7 @@
                     </div>
 
                     <!-- COLUMNA 2: PLANTILLAS (Lista + Editor) -->
-                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden flex-1 shrink-0 h-auto lg:h-full min-h-[500px] lg:min-h-0">
+                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden flex-1">
                         
                         <!-- Lista de Plantillas -->
                         <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 flex flex-col h-48 md:h-auto">
@@ -1255,7 +1277,5 @@
         });
       }
     </script>
-</body>
-</html>
 </body>
 </html>
