@@ -134,15 +134,19 @@
             </button>
             <button onclick="switchView('estudiantes')" id="nav-estudiantes" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white mt-4 border-t border-blue-800 pt-4">
                 <i class="fa-solid fa-users w-5"></i>
-                Estudiantes e Historial
+                Estudiantes
             </button>
-            <button onclick="switchView('configuracion')" id="nav-configuracion" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
+            <button onclick="switchView('historial')" id="nav-historial" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
+                <i class="fa-solid fa-clock-rotate-left w-5"></i>
+                Historial General
+            </button>
+            <button onclick="switchView('configuracion')" id="nav-configuracion" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white mt-4 border-t border-blue-800 pt-4">
                 <i class="fa-solid fa-gear w-5"></i>
                 Configuración
             </button>
         </nav>
         <div class="p-4 border-t border-blue-800 text-xs text-center text-blue-400 shrink-0">
-            v2.0 - Historial Avanzado
+            v2.1 - Historial & Filtros
         </div>
     </aside>
 
@@ -607,9 +611,15 @@
                         <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Directorio de Estudiantes</h2>
                         <p class="text-gray-500 text-xs md:text-sm">Gestiona historiales, comprobantes y envía notificaciones.</p>
                     </div>
-                    <div class="w-full md:w-auto relative">
-                        <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
-                        <input type="text" id="search-estudiantes" onkeyup="renderTablaEstudiantes()" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none w-full md:w-64 text-sm" placeholder="Buscar nombre / programa...">
+                    <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                        <select id="filter-estudiantes-programa" onchange="renderTablaEstudiantes()" class="border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none px-3 py-2 text-sm bg-white w-full md:w-48">
+                            <option value="">Todas las carreras</option>
+                            <!-- Llenado por JS -->
+                        </select>
+                        <div class="relative flex-1 md:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                            <input type="text" id="search-estudiantes" onkeyup="renderTablaEstudiantes()" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none w-full text-sm" placeholder="Buscar nombre...">
+                        </div>
                     </div>
                 </div>
 
@@ -631,7 +641,50 @@
                     </div>
                     <div id="estudiantes-empty" class="hidden flex-1 flex flex-col items-center justify-center p-10 text-gray-400">
                         <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
-                        <p class="text-center mt-2">No hay estudiantes guardados.<br>Crea uno nuevo en la pestaña Recordatorios.</p>
+                        <p class="text-center mt-2">No hay estudiantes guardados.<br>Crea uno nuevo en la pestaña Recordatorios o ajusta tu búsqueda.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= VIEW: HISTORIAL GENERAL ================= -->
+            <div id="view-historial" class="hidden w-full h-full bg-white flex flex-col p-4 md:p-8 overflow-y-auto absolute inset-0">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4 shrink-0">
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Historial General de Documentos</h2>
+                        <p class="text-gray-500 text-xs md:text-sm">Registro cronológico de todos los recordatorios y comprobantes emitidos.</p>
+                    </div>
+                    <div class="flex flex-col md:flex-row gap-2 w-full md:w-auto">
+                        <select id="filter-historial-tipo" onchange="renderTablaHistorial()" class="border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none px-3 py-2 text-sm bg-white w-full md:w-48">
+                            <option value="">Todos los documentos</option>
+                            <option value="RECORDATORIO">Solo Recordatorios</option>
+                            <option value="COMPROBANTE">Solo Comprobantes</option>
+                        </select>
+                        <div class="relative flex-1 md:w-64">
+                            <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
+                            <input type="text" id="search-historial" onkeyup="renderTablaHistorial()" class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dunamis-blue focus:outline-none w-full text-sm" placeholder="Buscar estudiante o programa...">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col shrink-0 min-h-[400px]">
+                    <div class="overflow-x-auto w-full flex-1">
+                        <table class="w-full text-left text-sm text-gray-600 min-w-[800px]">
+                            <thead class="bg-gray-100 text-gray-700 font-bold border-b border-gray-200 uppercase text-xs tracking-wider">
+                                <tr>
+                                    <th class="py-4 px-5">Fecha y Tipo</th>
+                                    <th class="py-4 px-5">Estudiante y Programa</th>
+                                    <th class="py-4 px-5 text-right">Monto</th>
+                                    <th class="py-4 px-5 text-right">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-historial-body" class="divide-y divide-gray-100">
+                                <!-- Llenado por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="historial-empty" class="hidden flex-1 flex flex-col items-center justify-center p-10 text-gray-400">
+                        <i class="fa-solid fa-clock text-4xl mb-3"></i>
+                        <p class="text-center mt-2">Aún no hay documentos en el historial.<br>Genera un recordatorio o comprobante para comenzar.</p>
                     </div>
                 </div>
             </div>
@@ -826,6 +879,7 @@
             document.getElementById('view-estudiantes').classList.add('hidden');
             document.getElementById('view-configuracion').classList.add('hidden');
             document.getElementById('view-comprobantes').classList.add('hidden');
+            document.getElementById('view-historial').classList.add('hidden');
 
             // Show target
             document.getElementById(`nav-${viewName}`).classList.add('active', 'bg-blue-800', 'text-white');
@@ -843,6 +897,9 @@
             } else if (viewName === 'comprobantes') {
                 document.getElementById('view-comprobantes').classList.remove('hidden');
                 actualizarSelectEstudiantesComp();
+            } else if (viewName === 'historial') {
+                document.getElementById('view-historial').classList.remove('hidden');
+                renderTablaHistorial();
             }
 
             // Auto close sidebar on mobile after clicking
@@ -976,6 +1033,14 @@
             if(!nombre) { alert("El nombre del estudiante es obligatorio."); return; }
             const totalActual = itemsCobroFormulario.reduce((acc, i) => acc + (i.cant * i.valor), 0);
 
+            const nuevoRecordatorio = {
+                id: "REC_" + Date.now(),
+                emision: getVal('inpEmision'),
+                vencimiento: getVal('inpVencimiento'),
+                items: JSON.parse(JSON.stringify(itemsCobroFormulario)),
+                total: totalActual
+            };
+
             let registro = {
                 id: currentEditEstudianteId || crypto.randomUUID(),
                 nombre: nombre,
@@ -986,17 +1051,21 @@
                 items: JSON.parse(JSON.stringify(itemsCobroFormulario)),
                 total: totalActual,
                 fechaActualizacion: new Date().toISOString(),
-                comprobantes: [] // Default vacío
+                comprobantes: [],
+                recordatorios: []
             };
 
             if (currentEditEstudianteId) {
                 const idx = estudiantesDB.findIndex(e => e.id === currentEditEstudianteId);
                 if(idx !== -1) {
-                    // Preservar el historial de comprobantes existente al actualizar el recordatorio
+                    // Preservar historiales previos y añadir el nuevo recordatorio a la lista
                     registro.comprobantes = estudiantesDB[idx].comprobantes || [];
+                    registro.recordatorios = estudiantesDB[idx].recordatorios || [];
+                    registro.recordatorios.unshift(nuevoRecordatorio);
                     estudiantesDB[idx] = registro;
                 }
             } else {
+                registro.recordatorios.unshift(nuevoRecordatorio);
                 estudiantesDB.unshift(registro); 
             }
 
@@ -1116,16 +1185,19 @@
             renderTablaEstudiantes();
         }
 
-        // ---------------- 3. LOGICA ESTUDIANTES Y CONFIGURACIÓN ----------------
+        // ---------------- 3. LOGICA ESTUDIANTES, HISTORIAL Y CONFIGURACIÓN ----------------
         function renderTablaEstudiantes() {
             const tbody = document.getElementById('tabla-estudiantes-body');
             const emptyState = document.getElementById('estudiantes-empty');
             const term = document.getElementById('search-estudiantes').value.toLowerCase();
+            const progFilter = document.getElementById('filter-estudiantes-programa').value;
             tbody.innerHTML = '';
 
-            let filtered = estudiantesDB.filter(e => 
-                (e.nombre || '').toLowerCase().includes(term) || (e.programa || '').toLowerCase().includes(term)
-            );
+            let filtered = estudiantesDB.filter(e => {
+                const matchTerm = (e.nombre || '').toLowerCase().includes(term);
+                const matchProg = progFilter === "" || e.programa === progFilter;
+                return matchTerm && matchProg;
+            });
 
             if (filtered.length === 0) {
                 tbody.parentNode.classList.add('hidden'); emptyState.classList.remove('hidden'); return;
@@ -1168,7 +1240,7 @@
                     <td class="py-4 px-5 min-w-[220px]">
                         <div class="flex items-center justify-end gap-2">
                             <button onclick="abrirHistorial('${est.id}')" class="bg-dunamis-blue text-white px-3 py-2 rounded text-xs font-bold hover:bg-blue-800 transition flex items-center gap-1 shadow-sm">
-                                <i class="fa-solid fa-folder-open"></i> Historial & Envíos
+                                <i class="fa-solid fa-folder-open"></i> Historial Estudiante
                             </button>
                             <button onclick="editarEstudiante('${est.id}')" title="Editar Recordatorio Base" class="bg-gray-100 text-blue-600 hover:bg-blue-200 p-2 rounded transition shadow-sm">
                                 <i class="fa-solid fa-pen text-sm"></i>
@@ -1183,7 +1255,174 @@
             });
         }
 
-        // Lógica Modal Historial
+        // Lógica de Historial General (Tabla)
+        function renderTablaHistorial() {
+            const tbody = document.getElementById('tabla-historial-body');
+            const emptyState = document.getElementById('historial-empty');
+            const term = document.getElementById('search-historial').value.toLowerCase();
+            const tipoFilter = document.getElementById('filter-historial-tipo').value;
+            
+            let historialGlobal = [];
+
+            estudiantesDB.forEach(est => {
+                // Agregar recordatorios
+                if (est.recordatorios && est.recordatorios.length > 0) {
+                    est.recordatorios.forEach(rec => {
+                        historialGlobal.push({
+                            ...rec, 
+                            type: 'RECORDATORIO', 
+                            studentName: est.nombre, 
+                            studentProg: est.programa, 
+                            date: rec.emision, 
+                            realDate: new Date(rec.emision + 'T00:00:00'),
+                            estudianteId: est.id
+                        });
+                    });
+                } else if (est.emision) {
+                    // Fallback para datos antiguos sin array de recordatorios
+                    historialGlobal.push({
+                        id: est.id,
+                        type: 'RECORDATORIO', 
+                        studentName: est.nombre, 
+                        studentProg: est.programa, 
+                        date: est.emision, 
+                        vencimiento: est.vencimiento, 
+                        total: est.total, 
+                        realDate: new Date(est.emision + 'T00:00:00'),
+                        estudianteId: est.id
+                    });
+                }
+
+                // Agregar comprobantes
+                if (est.comprobantes && est.comprobantes.length > 0) {
+                    est.comprobantes.forEach(comp => {
+                        historialGlobal.push({
+                            ...comp, 
+                            type: 'COMPROBANTE', 
+                            studentName: est.nombre, 
+                            studentProg: est.programa, 
+                            date: comp.fechaEmision, 
+                            realDate: new Date(comp.fechaEmision + 'T00:00:00'),
+                            estudianteId: est.id
+                        });
+                    });
+                }
+            });
+
+            // Ordenar por fecha de más reciente a más antiguo
+            historialGlobal.sort((a, b) => b.realDate - a.realDate);
+
+            // Aplicar filtros
+            let filtered = historialGlobal.filter(item => {
+                const matchTerm = (item.studentName || '').toLowerCase().includes(term) || (item.studentProg || '').toLowerCase().includes(term);
+                const matchTipo = tipoFilter === "" || item.type === tipoFilter;
+                return matchTerm && matchTipo;
+            });
+
+            tbody.innerHTML = '';
+            if (filtered.length === 0) {
+                tbody.parentNode.classList.add('hidden'); emptyState.classList.remove('hidden'); return;
+            } else {
+                tbody.parentNode.classList.remove('hidden'); emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors border-b border-gray-100";
+                
+                let icon = item.type === 'RECORDATORIO' ? '<i class="fa-solid fa-file-invoice-dollar"></i>' : '<i class="fa-solid fa-receipt"></i>';
+                let typeColor = item.type === 'RECORDATORIO' ? 'text-dunamis-blue bg-blue-100' : 'text-dunamis-green bg-green-100';
+                
+                let wsText = "";
+                let mailText = "";
+                if(item.type === 'RECORDATORIO') {
+                    wsText = `Hola ${item.studentName}, adjunto te compartimos el recordatorio de pago de la Fundación Dunamis. Total a pagar: ${formatter.format(item.total)}. Vencimiento: ${formatFechaCorto(item.vencimiento)}. ¡Bendiciones!`;
+                } else {
+                    wsText = `Hola ${item.studentName}, confirmamos la recepción de tu pago por valor de ${formatter.format(item.total)}. Adjunto te compartimos tu comprobante de pago de la Fundación Dunamis. ¡Bendiciones!`;
+                }
+                
+                let wsLink = `https://wa.me/?text=${encodeURIComponent(wsText)}`;
+                let mailLink = `mailto:?subject=${item.type === 'RECORDATORIO' ? 'Recordatorio' : 'Comprobante'} de Pago - Fundación Dunamis&body=${encodeURIComponent(wsText)}`;
+
+                tr.innerHTML = `
+                    <td class="py-4 px-5 whitespace-nowrap">
+                        <div class="font-bold text-gray-800">${formatFechaCorto(item.date)}</div>
+                        <div class="inline-block mt-1 px-2 py-0.5 rounded text-[10px] font-bold ${typeColor} uppercase flex items-center gap-1 w-max">${icon} ${item.type}</div>
+                    </td>
+                    <td class="py-4 px-5">
+                        <div class="font-bold text-gray-800 uppercase text-sm">${item.studentName}</div>
+                        <div class="text-xs text-gray-500">${item.studentProg || '-'}</div>
+                    </td>
+                    <td class="py-4 px-5 text-right">
+                        <div class="font-black text-gray-800 text-sm">${formatter.format(item.total)}</div>
+                        ${item.type === 'COMPROBANTE' ? `<div class="text-[10px] text-gray-500 uppercase">${item.metodo}</div>` : `<div class="text-[10px] text-red-500 font-semibold">Vence: ${formatFechaCorto(item.vencimiento)}</div>`}
+                    </td>
+                    <td class="py-4 px-5">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="verDocumentoHistorial('${item.type}', '${item.estudianteId}', '${item.id}')" class="bg-blue-100 text-dunamis-blue hover:bg-blue-200 p-2 rounded transition shadow-sm" title="Ver Documento">
+                                <i class="fa-solid fa-eye text-sm"></i>
+                            </button>
+                            <a href="${wsLink}" target="_blank" class="bg-green-100 text-green-700 hover:bg-green-200 p-2 rounded transition shadow-sm" title="Enviar WhatsApp">
+                                <i class="fa-brands fa-whatsapp text-lg"></i>
+                            </a>
+                            <a href="${mailLink}" target="_blank" class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded transition shadow-sm" title="Enviar Correo">
+                                <i class="fa-solid fa-envelope text-sm"></i>
+                            </a>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Lógica de visualización desde el Historial General
+        function verDocumentoHistorial(tipo, estId, docId) {
+            if(tipo === 'COMPROBANTE') {
+                cargarComprobanteEnVista(estId, docId);
+            } else if (tipo === 'RECORDATORIO') {
+                cargarRecordatorioEnVista(estId, docId);
+            }
+        }
+
+        function cargarRecordatorioEnVista(estId, docId) {
+            const est = estudiantesDB.find(e => e.id === estId);
+            if(!est) return;
+
+            let rec = null;
+            if(est.recordatorios && est.recordatorios.length > 0) {
+                rec = est.recordatorios.find(r => r.id === docId);
+            }
+
+            if(!rec) {
+                // Fallback para datos guardados en la versión antigua sin array de recordatorios
+                rec = {
+                    emision: est.emision,
+                    vencimiento: est.vencimiento,
+                    items: est.items,
+                    total: est.total
+                };
+            }
+
+            cerrarHistorial(); // Cerrar modal si estuviera abierto por seguridad
+            switchView('recordatorios');
+
+            currentEditEstudianteId = est.id;
+            document.getElementById('form-title').innerText = "Visualizando Recordatorio";
+            document.getElementById('inpNombre').value = est.nombre;
+            document.getElementById('inpPrograma').value = est.programa || "";
+            document.getElementById('inpPlantilla').value = est.plantillaId || "";
+            document.getElementById('inpEmision').value = rec.emision;
+            document.getElementById('inpVencimiento').value = rec.vencimiento;
+            
+            itemsCobroFormulario = JSON.parse(JSON.stringify(rec.items || []));
+            
+            document.getElementById('inpNombre').dispatchEvent(new Event('input'));
+            document.getElementById('inpPrograma').dispatchEvent(new Event('change'));
+            updatePreviewFechas();
+            renderTablaCobros();
+        }
+
+        // Lógica Modal Historial (Individual de Estudiante)
         function abrirHistorial(id) {
             const est = estudiantesDB.find(e => e.id === id);
             if(!est) return;
@@ -1313,8 +1552,13 @@
 
         function actualizarSelectProgramas() {
             const select = document.getElementById('inpPrograma');
+            const selectFilter = document.getElementById('filter-estudiantes-programa');
             select.innerHTML = '<option value="">-- Seleccione un programa --</option>';
-            programasDB.forEach(prog => { select.innerHTML += `<option value="${prog}">${prog}</option>`; });
+            if(selectFilter) selectFilter.innerHTML = '<option value="">Todas las carreras</option>';
+            programasDB.forEach(prog => { 
+                select.innerHTML += `<option value="${prog}">${prog}</option>`; 
+                if(selectFilter) selectFilter.innerHTML += `<option value="${prog}">${prog}</option>`; 
+            });
         }
 
         function renderProgramasConfigUI() {
