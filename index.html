@@ -48,7 +48,7 @@
                 position: static !important;
                 display: block !important;
             }
-            #sidebar, section[id$="controls-panel"], .no-print, header.mobile-header { display: none !important; }
+            #sidebar, section[id$="controls-panel"], .no-print, header.mobile-header, #modal-historial { display: none !important; }
             .hidden { display: none !important; }
             
             /* Desactivar flexbox en contenedores que limitan la altura para evitar recortes */
@@ -134,7 +134,7 @@
             </button>
             <button onclick="switchView('estudiantes')" id="nav-estudiantes" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white mt-4 border-t border-blue-800 pt-4">
                 <i class="fa-solid fa-users w-5"></i>
-                Estudiantes y Envíos
+                Estudiantes e Historial
             </button>
             <button onclick="switchView('configuracion')" id="nav-configuracion" class="nav-item w-full flex items-center gap-3 p-3 rounded-lg text-sm font-semibold transition-colors text-gray-300 hover:bg-blue-800 hover:text-white">
                 <i class="fa-solid fa-gear w-5"></i>
@@ -142,7 +142,7 @@
             </button>
         </nav>
         <div class="p-4 border-t border-blue-800 text-xs text-center text-blue-400 shrink-0">
-            v1.6 - Estructura Robusta Android
+            v2.0 - Historial Avanzado
         </div>
     </aside>
 
@@ -419,7 +419,7 @@
                             <select id="compSelectEstudiante" onchange="cargarEstudianteComprobante()" class="w-full text-sm border border-green-300 rounded p-2 focus:ring-2 focus:ring-dunamis-green focus:outline-none bg-white">
                                 <!-- Llenado por JS -->
                             </select>
-                            <p class="text-[10px] text-gray-500 mt-1">Selecciona un estudiante para cargar sus datos y monto del último recordatorio.</p>
+                            <p class="text-[10px] text-gray-500 mt-1">Selecciona un estudiante para cargar sus datos y agregar el comprobante a su historial.</p>
                         </div>
 
                         <!-- Fechas -->
@@ -493,11 +493,14 @@
                     </div>
 
                     <!-- Botones Acciones Comprobante -->
-                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0">
-                        <button onclick="window.print()" class="w-full bg-dunamis-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-file-pdf"></i> Generar Comprobante PDF
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0 flex flex-col gap-2">
+                        <button onclick="guardarComprobante()" class="w-full bg-dunamis-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-save"></i> Guardar Historial
                         </button>
-                        <button onclick="limpiarFormularioComprobante()" class="w-full mt-3 bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+                        <button onclick="window.print()" class="w-full bg-dunamis-green hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i> Imprimir Comprobante
+                        </button>
+                        <button onclick="limpiarFormularioComprobante()" class="w-full bg-white border border-gray-300 text-gray-600 hover:bg-gray-100 font-semibold py-2 px-4 rounded-lg transition-colors text-sm mt-1">
                             Limpiar Campos
                         </button>
                     </div>
@@ -602,7 +605,7 @@
                 <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4 shrink-0">
                     <div>
                         <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Directorio de Estudiantes</h2>
-                        <p class="text-gray-500 text-xs md:text-sm">Gestiona y envía los recordatorios y comprobantes.</p>
+                        <p class="text-gray-500 text-xs md:text-sm">Gestiona historiales, comprobantes y envía notificaciones.</p>
                     </div>
                     <div class="w-full md:w-auto relative">
                         <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
@@ -610,25 +613,25 @@
                     </div>
                 </div>
 
-                <div class="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col shrink-0 min-h-[400px]">
-                    <div class="overflow-x-auto w-full">
-                        <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
-                            <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+                <div class="flex-1 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col shrink-0 min-h-[400px]">
+                    <div class="overflow-x-auto w-full flex-1">
+                        <table class="w-full text-left text-sm text-gray-600 min-w-[800px]">
+                            <thead class="bg-gray-100 text-gray-700 font-bold border-b border-gray-200 uppercase text-xs tracking-wider">
                                 <tr>
-                                    <th class="py-3 px-4 w-1/4">Estudiante</th>
-                                    <th class="py-3 px-4 w-1/4">Programa</th>
-                                    <th class="py-3 px-4">Costos / Fechas</th>
-                                    <th class="py-3 px-4 text-center">Acciones y Envío (WA/Mail)</th>
+                                    <th class="py-4 px-5 w-1/3">Información del Estudiante</th>
+                                    <th class="py-4 px-5 w-1/4">Recordatorio Activo</th>
+                                    <th class="py-4 px-5 text-center">Pagos Registrados</th>
+                                    <th class="py-4 px-5 text-right">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody id="tabla-estudiantes-body" class="divide-y divide-gray-200">
+                            <tbody id="tabla-estudiantes-body" class="divide-y divide-gray-100">
                                 <!-- Llenado por JS -->
                             </tbody>
                         </table>
                     </div>
                     <div id="estudiantes-empty" class="hidden flex-1 flex flex-col items-center justify-center p-10 text-gray-400">
                         <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
-                        <p class="text-center">No hay registros guardados.<br>Crea uno en la pestaña Recordatorios.</p>
+                        <p class="text-center mt-2">No hay estudiantes guardados.<br>Crea uno nuevo en la pestaña Recordatorios.</p>
                     </div>
                 </div>
             </div>
@@ -705,6 +708,38 @@
                         </div>
                     </div>
 
+                </div>
+            </div>
+
+            <!-- MODAL DE HISTORIAL DE ESTUDIANTE -->
+            <div id="modal-historial" class="hidden fixed inset-0 bg-black/60 z-[100] flex justify-center items-center p-4 transition-opacity no-print backdrop-blur-sm">
+                <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+                    <div class="p-4 md:p-6 border-b border-gray-200 flex justify-between items-center bg-gray-50 shrink-0">
+                        <div>
+                            <h3 class="font-black text-xl md:text-2xl text-dunamis-blue uppercase" id="mh-nombre">Nombre Estudiante</h3>
+                            <p class="text-xs md:text-sm text-gray-500 font-semibold" id="mh-programa">Programa</p>
+                        </div>
+                        <button onclick="cerrarHistorial()" class="text-gray-400 hover:text-red-500 text-3xl leading-none transition-colors">&times;</button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col md:flex-row gap-6 bg-gray-100/50">
+                        <!-- Columna Izquierda: Recordatorio -->
+                        <div class="w-full md:w-1/3 space-y-4">
+                            <div class="bg-white p-5 rounded-xl border border-blue-100 shadow-sm relative overflow-hidden">
+                                <div class="absolute top-0 left-0 w-1 h-full bg-dunamis-blue"></div>
+                                <h4 class="font-bold text-dunamis-blue uppercase text-xs tracking-wider mb-4 border-b border-gray-100 pb-2"><i class="fa-solid fa-file-invoice-dollar mr-1"></i> Deuda Actual / Recordatorio</h4>
+                                <div id="mh-recordatorio-info">
+                                    <!-- Llenado por JS -->
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Columna Derecha: Pagos -->
+                        <div class="w-full md:w-2/3 bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+                            <h4 class="font-bold text-dunamis-green uppercase text-xs tracking-wider mb-4 border-b border-gray-100 pb-2"><i class="fa-solid fa-receipt mr-1"></i> Historial de Comprobantes Guardados</h4>
+                            <div id="mh-comprobantes-list" class="flex-1 overflow-y-auto space-y-3 pr-2">
+                                <!-- Llenado por JS -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -941,7 +976,7 @@
             if(!nombre) { alert("El nombre del estudiante es obligatorio."); return; }
             const totalActual = itemsCobroFormulario.reduce((acc, i) => acc + (i.cant * i.valor), 0);
 
-            const registro = {
+            let registro = {
                 id: currentEditEstudianteId || crypto.randomUUID(),
                 nombre: nombre,
                 programa: getVal('inpPrograma'),
@@ -950,12 +985,17 @@
                 vencimiento: getVal('inpVencimiento'),
                 items: JSON.parse(JSON.stringify(itemsCobroFormulario)),
                 total: totalActual,
-                fechaActualizacion: new Date().toISOString()
+                fechaActualizacion: new Date().toISOString(),
+                comprobantes: [] // Default vacío
             };
 
             if (currentEditEstudianteId) {
                 const idx = estudiantesDB.findIndex(e => e.id === currentEditEstudianteId);
-                if(idx !== -1) estudiantesDB[idx] = registro;
+                if(idx !== -1) {
+                    // Preservar el historial de comprobantes existente al actualizar el recordatorio
+                    registro.comprobantes = estudiantesDB[idx].comprobantes || [];
+                    estudiantesDB[idx] = registro;
+                }
             } else {
                 estudiantesDB.unshift(registro); 
             }
@@ -1043,6 +1083,39 @@
             });
         }
 
+        function guardarComprobante() {
+            const estudianteId = getVal('compSelectEstudiante');
+            if(!estudianteId) { alert("¡Aviso!\nPor favor, selecciona un estudiante desde el Rellenado Automático para enlazar el comprobante a su historial."); return; }
+            
+            const idx = estudiantesDB.findIndex(e => e.id === estudianteId);
+            if(idx === -1) return;
+
+            const totalPagado = Number(getVal('compTotal')) || 0;
+            if(totalPagado <= 0) { alert("¡Aviso!\nIngrese un Total Pagado válido (mayor a cero)."); return; }
+            
+            const concepto = getVal('compConcepto').trim();
+            if(!concepto) { alert("¡Aviso!\nIngrese un concepto para el pago."); return; }
+
+            const nuevoComprobante = {
+                id: "COMP_" + Date.now(),
+                fechaEmision: getVal('compEmision'),
+                fechaPago: getVal('compPago'),
+                concepto: concepto,
+                total: totalPagado,
+                metodo: getVal('compMetodo'),
+                observaciones: getVal('compObs'),
+                elaboradoPor: getVal('compElaborado')
+            };
+
+            if(!estudiantesDB[idx].comprobantes) estudiantesDB[idx].comprobantes = [];
+            estudiantesDB[idx].comprobantes.unshift(nuevoComprobante); // Agrega de primero
+
+            localStorage.setItem('dunamis_estudiantes', JSON.stringify(estudiantesDB));
+            alert(`¡Éxito!\nComprobante guardado en el historial de pagos de ${estudiantesDB[idx].nombre}.`);
+            
+            renderTablaEstudiantes();
+        }
+
         // ---------------- 3. LOGICA ESTUDIANTES Y CONFIGURACIÓN ----------------
         function renderTablaEstudiantes() {
             const tbody = document.getElementById('tabla-estudiantes-body');
@@ -1061,46 +1134,151 @@
             }
 
             filtered.forEach(est => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-blue-50 transition-colors";
-                
-                // Mensajes de Envio (Recordatorio vs Comprobante)
-                const textMsgRec = `Hola ${est.nombre}, adjunto te compartimos el recordatorio de pago de la Fundación Dunamis. Total a pagar: ${formatter.format(est.total)}. Vencimiento: ${formatFechaCorto(est.vencimiento)}. ¡Bendiciones!`;
-                const textMsgComp = `Hola ${est.nombre}, confirmamos la recepción de tu pago por valor de ${formatter.format(est.total)}. Adjunto te compartimos tu comprobante de pago de la Fundación Dunamis. ¡Bendiciones!`;
-                
-                const wsLinkRec = `https://wa.me/?text=${encodeURIComponent(textMsgRec)}`;
-                const mailLinkRec = `mailto:?subject=Recordatorio de Pago - Fundación Dunamis&body=${encodeURIComponent(textMsgRec)}`;
-                const wsLinkComp = `https://wa.me/?text=${encodeURIComponent(textMsgComp)}`;
-                const mailLinkComp = `mailto:?subject=Comprobante de Pago - Fundación Dunamis&body=${encodeURIComponent(textMsgComp)}`;
+                const comprobantesCount = (est.comprobantes || []).length;
+                const nombresArr = est.nombre.trim().split(' ');
+                let iniciales = nombresArr[0].charAt(0).toUpperCase();
+                if(nombresArr.length > 1) iniciales += nombresArr[1].charAt(0).toUpperCase();
 
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-blue-50 transition-colors border-b border-gray-100";
+                
                 tr.innerHTML = `
-                    <td class="py-3 px-4 font-semibold text-gray-800 uppercase min-w-[150px]">${est.nombre}</td>
-                    <td class="py-3 px-4 text-xs min-w-[150px]">${est.programa || '-'}</td>
-                    <td class="py-3 px-4 min-w-[150px]">
-                        <div class="font-bold text-gray-800 text-sm mb-1">${formatter.format(est.total)}</div>
-                        <div class="text-[10px] text-gray-500">Emisión: ${formatFechaCorto(est.emision)}</div>
-                        <div class="text-[10px] text-dunamis-blue font-bold">Vence: ${formatFechaCorto(est.vencimiento)}</div>
-                    </td>
-                    <td class="py-2 px-3 min-w-[180px]">
-                        <!-- Botones de edicion/eliminar -->
-                        <div class="flex justify-center gap-1 mb-2">
-                            <button onclick="editarEstudiante('${est.id}')" title="Editar Información" class="text-blue-600 hover:bg-blue-100 p-1.5 rounded transition"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="eliminarEstudiante('${est.id}')" title="Eliminar Registro" class="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                    <td class="py-4 px-5 min-w-[250px]">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-dunamis-lightBlue text-dunamis-blue flex items-center justify-center font-bold text-sm shrink-0">
+                                ${iniciales}
+                            </div>
+                            <div>
+                                <div class="font-bold text-gray-800 uppercase text-sm">${est.nombre}</div>
+                                <div class="text-xs text-gray-500 truncate max-w-[200px]">${est.programa || 'Sin programa'}</div>
+                            </div>
                         </div>
-                        
-                        <!-- Panel de envios doble -->
-                        <div class="grid grid-cols-2 gap-x-1 md:gap-x-2 gap-y-1 text-center bg-gray-50 p-1 md:p-1.5 rounded border border-gray-100 shadow-sm">
-                            <div class="col-span-2 text-[9px] md:text-[10px] font-bold text-dunamis-blue uppercase border-b border-gray-200 pb-0.5">Recordatorio</div>
-                            <a href="${wsLinkRec}" target="_blank" title="WhatsApp" class="text-green-600 hover:bg-green-100 p-1 rounded flex justify-center items-center"><i class="fa-brands fa-whatsapp text-sm md:text-lg"></i></a>
-                            <a href="${mailLinkRec}" target="_blank" title="Correo" class="text-red-500 hover:bg-red-100 p-1 rounded flex justify-center items-center"><i class="fa-solid fa-envelope text-sm"></i></a>
-                            
-                            <div class="col-span-2 text-[9px] md:text-[10px] font-bold text-dunamis-green uppercase border-b border-gray-200 pb-0.5 mt-1">Comprobante</div>
-                            <a href="${wsLinkComp}" target="_blank" title="WhatsApp" class="text-green-600 hover:bg-green-100 p-1 rounded flex justify-center items-center"><i class="fa-brands fa-whatsapp text-sm md:text-lg"></i></a>
-                            <a href="${mailLinkComp}" target="_blank" title="Correo" class="text-red-500 hover:bg-red-100 p-1 rounded flex justify-center items-center"><i class="fa-solid fa-envelope text-sm"></i></a>
+                    </td>
+                    <td class="py-4 px-5 min-w-[150px]">
+                        <div class="bg-gray-50 rounded px-3 py-1.5 border border-gray-200 inline-block">
+                            <div class="font-black text-dunamis-blue text-sm">${formatter.format(est.total)}</div>
+                            <div class="text-[10px] text-gray-500 font-semibold mt-0.5">Vence: <span class="text-red-500">${formatFechaCorto(est.vencimiento)}</span></div>
+                        </div>
+                    </td>
+                    <td class="py-4 px-5 min-w-[150px] text-center">
+                        <span class="inline-flex items-center gap-1.5 ${comprobantesCount > 0 ? 'bg-green-100 text-green-800 border-green-200' : 'bg-gray-100 text-gray-500 border-gray-200'} text-xs font-bold px-3 py-1 rounded-full border">
+                            <i class="fa-solid fa-receipt"></i> ${comprobantesCount} pagos
+                        </span>
+                    </td>
+                    <td class="py-4 px-5 min-w-[220px]">
+                        <div class="flex items-center justify-end gap-2">
+                            <button onclick="abrirHistorial('${est.id}')" class="bg-dunamis-blue text-white px-3 py-2 rounded text-xs font-bold hover:bg-blue-800 transition flex items-center gap-1 shadow-sm">
+                                <i class="fa-solid fa-folder-open"></i> Historial & Envíos
+                            </button>
+                            <button onclick="editarEstudiante('${est.id}')" title="Editar Recordatorio Base" class="bg-gray-100 text-blue-600 hover:bg-blue-200 p-2 rounded transition shadow-sm">
+                                <i class="fa-solid fa-pen text-sm"></i>
+                            </button>
+                            <button onclick="eliminarEstudiante('${est.id}')" title="Eliminar Estudiante" class="bg-gray-100 text-red-500 hover:bg-red-200 p-2 rounded transition shadow-sm">
+                                <i class="fa-solid fa-trash text-sm"></i>
+                            </button>
                         </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
+            });
+        }
+
+        // Lógica Modal Historial
+        function abrirHistorial(id) {
+            const est = estudiantesDB.find(e => e.id === id);
+            if(!est) return;
+            
+            document.getElementById('mh-nombre').innerText = est.nombre;
+            document.getElementById('mh-programa').innerText = est.programa || 'Sin programa';
+            
+            // Recordatorio Actual Info
+            const wsTextRec = `Hola ${est.nombre}, adjunto te compartimos el recordatorio de pago de la Fundación Dunamis. Total a pagar: ${formatter.format(est.total)}. Vencimiento: ${formatFechaCorto(est.vencimiento)}. ¡Bendiciones!`;
+            const mailTextRec = `mailto:?subject=Recordatorio de Pago - Fundación Dunamis&body=${encodeURIComponent(wsTextRec)}`;
+            
+            document.getElementById('mh-recordatorio-info').innerHTML = `
+                <div class="text-sm text-gray-700 mb-1"><strong>Deuda calculada:</strong></div>
+                <div class="text-dunamis-blue font-black text-2xl mb-2">${formatter.format(est.total)}</div>
+                <div class="text-xs text-gray-600 mb-4 bg-gray-50 p-2 rounded border border-gray-200">
+                    <div><strong>Emitido:</strong> ${formatFechaCorto(est.emision)}</div>
+                    <div class="mt-1"><strong>Vencimiento:</strong> <span class="text-red-600 font-bold">${formatFechaCorto(est.vencimiento)}</span></div>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <a href="https://wa.me/?text=${encodeURIComponent(wsTextRec)}" target="_blank" class="w-full bg-green-500 hover:bg-green-600 text-white text-center py-2.5 rounded-lg text-sm font-bold transition flex items-center justify-center gap-2 shadow-sm"><i class="fa-brands fa-whatsapp text-lg"></i> Enviar Recordatorio</a>
+                    <a href="${mailTextRec}" target="_blank" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-center py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-2"><i class="fa-solid fa-envelope"></i> Enviar por Correo</a>
+                </div>
+            `;
+
+            // Lista de Comprobantes
+            const comprobantes = est.comprobantes || [];
+            const containerList = document.getElementById('mh-comprobantes-list');
+            containerList.innerHTML = '';
+            
+            if(comprobantes.length === 0) {
+                containerList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center text-gray-400 py-10 italic">
+                        <i class="fa-solid fa-receipt text-4xl mb-3 opacity-50"></i>
+                        <p class="text-sm">El estudiante aún no tiene pagos guardados.</p>
+                    </div>`;
+            } else {
+                comprobantes.forEach(comp => {
+                    const wsTextComp = `Hola ${est.nombre}, confirmamos la recepción de tu pago por valor de ${formatter.format(comp.total)}. Adjunto te compartimos tu comprobante de pago de la Fundación Dunamis. ¡Bendiciones!`;
+                    
+                    containerList.innerHTML += `
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 md:p-4 flex flex-col sm:flex-row justify-between sm:items-center gap-4 hover:shadow-md transition">
+                            <div class="flex-1">
+                                <div class="font-bold text-gray-800 text-sm uppercase">${comp.concepto}</div>
+                                <div class="text-[11px] text-gray-500 mt-1">
+                                    <span class="bg-gray-200 px-1.5 py-0.5 rounded mr-1"><i class="fa-solid fa-calendar-day"></i> ${formatFechaCorto(comp.fechaPago)}</span>
+                                    <span class="bg-gray-200 px-1.5 py-0.5 rounded"><i class="fa-solid fa-wallet"></i> ${comp.metodo}</span>
+                                </div>
+                                <div class="text-dunamis-green font-black text-lg mt-2">${formatter.format(comp.total)}</div>
+                            </div>
+                            <div class="flex flex-row sm:flex-col gap-2 shrink-0 border-t sm:border-t-0 border-gray-200 pt-3 sm:pt-0">
+                                <button onclick="cargarComprobanteEnVista('${est.id}', '${comp.id}')" class="flex-1 bg-dunamis-blue hover:bg-blue-800 text-white px-3 py-2 rounded text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-eye"></i> Ver / Imprimir
+                                </button>
+                                <a href="https://wa.me/?text=${encodeURIComponent(wsTextComp)}" target="_blank" class="flex-1 bg-green-100 hover:bg-green-200 text-green-800 px-3 py-2 rounded text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-sm text-center border border-green-200">
+                                    <i class="fa-brands fa-whatsapp text-sm"></i> Compartir
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            document.getElementById('modal-historial').classList.remove('hidden');
+        }
+
+        function cerrarHistorial() {
+            document.getElementById('modal-historial').classList.add('hidden');
+        }
+
+        // Cargar un comprobante antiguo para visualizarlo/imprimirlo
+        function cargarComprobanteEnVista(estId, compId) {
+            const est = estudiantesDB.find(e => e.id === estId);
+            if(!est) return;
+            const comp = (est.comprobantes || []).find(c => c.id === compId);
+            if(!comp) return;
+
+            cerrarHistorial();
+            switchView('comprobantes');
+
+            // Setear el selector (debe estar en la lista)
+            document.getElementById('compSelectEstudiante').value = est.id;
+            
+            document.getElementById('compEmision').value = comp.fechaEmision;
+            document.getElementById('compPago').value = comp.fechaPago;
+            document.getElementById('compNombre').value = est.nombre;
+            document.getElementById('compPrograma').value = est.programa || "";
+            document.getElementById('compConcepto').value = comp.concepto;
+            document.getElementById('compTotal').value = comp.total;
+            document.getElementById('compMetodo').value = comp.metodo;
+            document.getElementById('compObs').value = comp.observaciones;
+            document.getElementById('compElaborado').value = comp.elaboradoPor;
+
+            ['compEmision', 'compPago', 'compNombre', 'compPrograma', 'compConcepto', 'compTotal', 'compMetodo', 'compObs', 'compElaborado'].forEach(id => {
+                document.getElementById(id).dispatchEvent(new Event('input'));
+                document.getElementById(id).dispatchEvent(new Event('change'));
             });
         }
 
@@ -1125,7 +1303,7 @@
         }
 
         function eliminarEstudiante(id) {
-            if(confirm("¿Seguro que desea eliminar el registro de este estudiante?")) {
+            if(confirm("¿Seguro que desea eliminar TODO el registro de este estudiante, incluyendo su historial de pagos?")) {
                 estudiantesDB = estudiantesDB.filter(e => e.id !== id);
                 localStorage.setItem('dunamis_estudiantes', JSON.stringify(estudiantesDB));
                 renderTablaEstudiantes();
