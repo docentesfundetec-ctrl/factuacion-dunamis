@@ -115,7 +115,7 @@
 
     <!-- SIDEBAR -->
     <aside id="sidebar" class="absolute md:relative z-40 w-64 h-full bg-dunamis-blue text-white flex flex-col shadow-xl sidebar-transition transform -translate-x-full md:translate-x-0 flex-shrink-0">
-        <div class="p-6 text-center border-b border-blue-800 relative">
+        <div class="p-6 text-center border-b border-blue-800 relative shrink-0">
             <button onclick="toggleSidebar()" class="md:hidden absolute top-4 right-4 text-gray-300 hover:text-white">
                 <i class="fa-solid fa-xmark text-xl"></i>
             </button>
@@ -141,8 +141,8 @@
                 Configuración
             </button>
         </nav>
-        <div class="p-4 border-t border-blue-800 text-xs text-center text-blue-400">
-            v1.5 - Optimizado Android
+        <div class="p-4 border-t border-blue-800 text-xs text-center text-blue-400 shrink-0">
+            v1.6 - Estructura Robusta Android
         </div>
     </aside>
 
@@ -150,7 +150,7 @@
     <main class="flex-1 flex flex-col h-full overflow-hidden relative w-full">
         
         <!-- MOBILE HEADER -->
-        <header class="mobile-header md:hidden bg-dunamis-blue text-white p-4 flex justify-between items-center z-20 shadow-md flex-shrink-0">
+        <header class="mobile-header md:hidden bg-dunamis-blue text-white p-4 flex justify-between items-center z-20 shadow-md shrink-0 w-full">
             <div class="flex items-center gap-3">
                 <img src="LOGO.jpg" alt="Logo" class="w-10 h-10 object-contain bg-white p-0.5 rounded" onerror="this.onerror=null; this.src='https://via.placeholder.com/40x40/ffffff/1e3a8a?text=FD';">
                 <h1 class="font-bold text-lg leading-tight">Dunamis</h1>
@@ -160,16 +160,17 @@
             </button>
         </header>
 
-        <!-- VIEWS CONTAINER: Ahora permite scroll vertical fluido en móvil (overflow-y-auto md:overflow-hidden) -->
-        <div class="flex-1 block md:flex overflow-y-auto md:overflow-hidden relative w-full">
+        <!-- VIEWS CONTAINER: Contenedor rígido, las vistas manejan su propio scroll -->
+        <div class="flex-1 flex overflow-hidden relative w-full">
             
             <!-- ================= VIEW: RECORDATORIOS ================= -->
-            <div id="view-recordatorios" class="w-full flex flex-col md:flex-row h-auto md:h-full pb-10 md:pb-0">
+            <div id="view-recordatorios" class="w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-hidden absolute inset-0">
                 
                 <!-- PANEL DE CONTROL (FORMULARIO) -->
-                <!-- En móvil, h-auto para que los botones fluyan naturalmente sin cortarse -->
-                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] flex-shrink-0 bg-white shadow-xl z-10 md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200 h-auto md:h-full">
-                    <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <!-- Estructura flex garantizada: Cabecera (shrink-0), Cuerpo (flex-1), Botones (shrink-0) -->
+                <section id="recordatorios-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 md:h-full">
+                    <!-- Cabecera panel -->
+                    <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center shrink-0">
                         <div>
                             <h2 class="text-lg font-bold text-gray-800" id="form-title">Generar Recordatorio</h2>
                             <p class="text-xs text-gray-500">Modifica los datos para previsualizar.</p>
@@ -177,7 +178,8 @@
                         <button onclick="limpiarFormulario()" class="text-xs text-dunamis-blue hover:underline"><i class="fa-solid fa-rotate-left"></i> Limpiar</button>
                     </div>
 
-                    <div class="p-5 flex-1 space-y-5">
+                    <!-- Cuerpo formulario (Scroll interno en PC, crece en móvil) -->
+                    <div class="p-5 flex-1 md:overflow-y-auto space-y-5">
                         <!-- Datos Estudiante -->
                         <div>
                             <h3 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-2 border-b pb-1">1. Datos del Estudiante</h3>
@@ -244,8 +246,8 @@
                         </div>
                     </div>
 
-                    <!-- Acciones -->
-                    <div class="p-5 bg-gray-50 border-t border-gray-200 gap-3 flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] mt-auto">
+                    <!-- Botones de Acción (Obligatorios gracias a shrink-0) -->
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 gap-3 flex flex-col shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0">
                         <button onclick="guardarRegistro()" class="w-full bg-dunamis-blue hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
                             <i class="fa-solid fa-save"></i> Guardar Estudiante / Registro
                         </button>
@@ -256,7 +258,7 @@
                 </section>
 
                 <!-- AREA DE VISTA PREVIA DEL DOCUMENTO -->
-                <section id="recordatorios-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                <section id="recordatorios-preview-panel" class="w-full md:flex-1 bg-gray-300 p-4 md:p-8 overflow-x-auto md:overflow-y-auto flex md:justify-center items-start shrink-0">
                     
                     <!-- EL DOCUMENTO (ESTILO HOJA A4) -->
                     <div class="a4-document min-w-[750px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative">
@@ -399,16 +401,17 @@
 
 
             <!-- ================= VIEW: COMPROBANTES ================= -->
-            <div id="view-comprobantes" class="hidden w-full flex flex-col md:flex-row h-auto md:h-full pb-10 md:pb-0">
+            <div id="view-comprobantes" class="hidden w-full h-full flex flex-col md:flex-row overflow-y-auto md:overflow-hidden absolute inset-0">
                 
                 <!-- PANEL DE CONTROL COMPROBANTES -->
-                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] flex-shrink-0 bg-white shadow-xl z-10 md:overflow-y-auto flex flex-col border-b md:border-b-0 md:border-r border-gray-200 h-auto md:h-full">
-                    <div class="p-5 border-b border-gray-200 bg-gray-50">
+                <section id="comprobantes-controls-panel" class="w-full md:w-[400px] shrink-0 bg-white shadow-xl z-10 flex flex-col border-b md:border-b-0 md:border-r border-gray-200 md:h-full">
+                    
+                    <div class="p-5 border-b border-gray-200 bg-gray-50 shrink-0">
                         <h2 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-receipt text-dunamis-green mr-2"></i> Generar Comprobante</h2>
                         <p class="text-xs text-gray-500">Confirma y certifica los pagos realizados.</p>
                     </div>
 
-                    <div class="p-5 flex-1 space-y-5">
+                    <div class="p-5 flex-1 md:overflow-y-auto space-y-5">
                         
                         <!-- Llenado Inteligente -->
                         <div class="bg-green-50 p-3 rounded-lg border border-green-200 shadow-sm">
@@ -489,8 +492,8 @@
                         </div>
                     </div>
 
-                    <!-- Acciones -->
-                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] mt-auto">
+                    <!-- Botones Acciones Comprobante -->
+                    <div class="p-5 bg-gray-50 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] shrink-0">
                         <button onclick="window.print()" class="w-full bg-dunamis-green hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg shadow transition-colors flex items-center justify-center gap-2">
                             <i class="fa-solid fa-file-pdf"></i> Generar Comprobante PDF
                         </button>
@@ -501,7 +504,7 @@
                 </section>
 
                 <!-- AREA DE VISTA PREVIA COMPROBANTE -->
-                <section id="comprobantes-preview-panel" class="flex-1 w-full bg-gray-300 p-4 md:p-8 md:overflow-y-auto overflow-x-auto flex md:justify-center items-start">
+                <section id="comprobantes-preview-panel" class="w-full md:flex-1 bg-gray-300 p-4 md:p-8 overflow-x-auto md:overflow-y-auto flex md:justify-center items-start shrink-0">
                     
                     <!-- DOCUMENTO COMPROBANTE (A4 APAISADO/MITAD, ajustado a diseño) -->
                     <div class="a4-document min-w-[700px] lg:min-w-0 w-full max-w-3xl bg-white shadow-2xl p-6 md:p-10 flex flex-col rounded-sm relative" style="aspect-ratio: 1/1.2;">
@@ -595,8 +598,8 @@
             </div>
 
             <!-- ================= VIEW: ESTUDIANTES ================= -->
-            <div id="view-estudiantes" class="hidden w-full h-auto md:h-full bg-white flex flex-col p-4 md:p-8 md:overflow-y-auto">
-                <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
+            <div id="view-estudiantes" class="hidden w-full h-full bg-white flex flex-col p-4 md:p-8 overflow-y-auto absolute inset-0">
+                <div class="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4 shrink-0">
                     <div>
                         <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Directorio de Estudiantes</h2>
                         <p class="text-gray-500 text-xs md:text-sm">Gestiona y envía los recordatorios y comprobantes.</p>
@@ -607,7 +610,7 @@
                     </div>
                 </div>
 
-                <div class="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
+                <div class="flex-1 bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden flex flex-col shrink-0 min-h-[400px]">
                     <div class="overflow-x-auto w-full">
                         <table class="w-full text-left text-sm text-gray-600 min-w-[700px]">
                             <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
@@ -631,20 +634,20 @@
             </div>
 
             <!-- ================= VIEW: CONFIGURACIÓN ================= -->
-            <div id="view-configuracion" class="hidden w-full h-auto md:h-full bg-gray-50 flex flex-col p-4 md:p-8 md:overflow-y-auto pb-10">
-                <div class="mb-6">
+            <div id="view-configuracion" class="hidden w-full h-full bg-gray-50 flex flex-col p-4 md:p-8 overflow-y-auto absolute inset-0">
+                <div class="mb-6 shrink-0">
                     <h2 class="text-xl md:text-2xl font-bold text-dunamis-blue">Gestión de Parámetros</h2>
                     <p class="text-gray-500 text-xs md:text-sm">Agrega, edita o elimina programas académicos y plantillas financieras.</p>
                 </div>
 
-                <div class="flex-1 flex flex-col lg:flex-row gap-6 md:overflow-hidden h-auto md:h-full">
+                <div class="flex flex-col lg:flex-row gap-6 lg:overflow-hidden lg:flex-1 shrink-0 pb-6">
                     
                     <!-- COLUMNA 1: PROGRAMAS -->
-                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[300px] lg:h-auto">
-                        <div class="bg-dunamis-blue text-white p-3 md:p-4">
+                    <div class="w-full lg:w-1/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col overflow-hidden h-[350px] lg:h-auto shrink-0">
+                        <div class="bg-dunamis-blue text-white p-3 md:p-4 shrink-0">
                             <h3 class="font-bold text-base md:text-lg"><i class="fa-solid fa-book mr-2"></i> Programas</h3>
                         </div>
-                        <div class="p-3 md:p-4 border-b border-gray-200 bg-gray-50 flex gap-2">
+                        <div class="p-3 md:p-4 border-b border-gray-200 bg-gray-50 flex gap-2 shrink-0">
                             <input type="text" id="nuevo-programa-input" class="flex-1 border border-gray-300 rounded p-2 text-xs md:text-sm focus:ring-2 focus:ring-dunamis-blue focus:outline-none" placeholder="Nuevo programa...">
                             <button onclick="agregarPrograma()" class="bg-dunamis-accent text-white px-3 py-2 rounded font-bold hover:bg-yellow-600 transition"><i class="fa-solid fa-plus"></i></button>
                         </div>
@@ -654,19 +657,19 @@
                     </div>
 
                     <!-- COLUMNA 2: PLANTILLAS (Lista + Editor) -->
-                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden flex-1">
+                    <div class="w-full lg:w-2/3 bg-white border border-gray-200 rounded-xl shadow-sm flex flex-col md:flex-row overflow-hidden h-[650px] md:h-auto shrink-0">
                         
                         <!-- Lista de Plantillas -->
-                        <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 flex flex-col h-48 md:h-auto">
-                            <div class="bg-dunamis-blue text-white p-3 md:p-4">
+                        <div class="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-gray-200 bg-gray-50 flex flex-col h-48 md:h-auto shrink-0">
+                            <div class="bg-dunamis-blue text-white p-3 md:p-4 shrink-0">
                                 <h3 class="font-bold text-base md:text-lg"><i class="fa-solid fa-sliders mr-2"></i> Plantillas</h3>
                             </div>
-                            <div class="p-2 md:p-3 border-b border-gray-200">
+                            <div class="p-2 md:p-3 border-b border-gray-200 shrink-0">
                                 <button onclick="prepararNuevaPlantilla()" class="w-full bg-dunamis-accent text-white font-bold py-2 px-3 rounded shadow hover:bg-yellow-600 transition text-xs md:text-sm">
                                     <i class="fa-solid fa-plus"></i> Crear Plantilla
                                 </button>
                             </div>
-                            <ul id="lista-plantillas-ui" class="overflow-y-auto flex-1 p-2 space-y-1">
+                            <ul id="lista-plantillas-ui" class="flex-1 overflow-y-auto p-2 space-y-1">
                                 <!-- Llenado por JS -->
                             </ul>
                         </div>
@@ -674,12 +677,12 @@
                         <!-- Editor de Plantilla -->
                         <div class="w-full md:w-2/3 p-4 md:p-6 overflow-y-auto bg-white flex flex-col relative flex-1">
                             <div id="editor-plantilla" class="hidden h-full flex flex-col">
-                                <div class="mb-4">
+                                <div class="mb-4 shrink-0">
                                     <label class="block text-xs md:text-sm font-bold text-gray-700 mb-1">Nombre de la Plantilla</label>
                                     <input type="text" id="edit-plantilla-nombre" class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-dunamis-blue focus:outline-none text-sm" placeholder="Ej: Carrera Técnica - Promoción Especial">
                                 </div>
 
-                                <div class="mb-4 flex-1">
+                                <div class="mb-4 flex-1 overflow-y-auto pr-2">
                                     <div class="flex justify-between items-end mb-2 border-b pb-1">
                                         <h4 class="text-xs md:text-sm font-bold text-gray-700">Conceptos por Defecto</h4>
                                         <button onclick="addFilaPlantillaModal()" class="text-xs text-dunamis-blue hover:text-blue-800 font-semibold"><i class="fa-solid fa-plus"></i> Añadir Concepto</button>
@@ -689,7 +692,7 @@
                                     </div>
                                 </div>
 
-                                <div class="mt-4 pt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200">
+                                <div class="mt-4 pt-4 flex flex-wrap justify-end gap-2 border-t border-gray-200 shrink-0">
                                     <button onclick="eliminarPlantillaActual()" id="btn-eliminar-plantilla" class="px-3 md:px-4 py-2 text-red-600 hover:bg-red-50 rounded font-semibold text-xs md:text-sm mr-auto"><i class="fa-solid fa-trash"></i> Eliminar</button>
                                     <button onclick="guardarPlantillaModal()" class="px-4 md:px-6 py-2 bg-dunamis-blue hover:bg-blue-800 text-white rounded font-bold shadow text-xs md:text-sm">Guardar Plantilla</button>
                                 </div>
